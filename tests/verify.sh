@@ -22,7 +22,8 @@ require_file() {
 for file in \
   README.md \
   registry.tsv bin/product-os codex/AGENTS.md.snippet \
-  bin/build-knowledge bin/build-docs mkdocs.yml requirements-docs.txt docs/public-content.yml .github/workflows/docs.yml \
+  codex/AGENTS.global-plugin.snippet bin/build-knowledge bin/build-docs bin/build-codex-plugin bin/install-codex-plugin mkdocs.yml requirements-docs.txt docs/public-content.yml .github/workflows/docs.yml \
+  plugins/product-os/.codex-plugin/plugin.json plugins/product-os/skills/product-os/SKILL.md plugins/product-os/skills/product-os-init/SKILL.md plugins/product-os/scripts/init-project.py tests/verify-codex-plugin.sh \
   knowledge/taxonomy.yml knowledge/taxonomy.md knowledge/schema.yml knowledge/README.md knowledge/catalog.yml knowledge/catalog.md \
   agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/qa-reviewer.md \
   workflows/research-to-prd.md workflows/prd-to-tech-spec.md workflows/feature-delivery.md workflows/bug-fix.md workflows/no-bullshit-bug-fix.md \
@@ -40,13 +41,22 @@ done
 
 test -x "$root/bin/build-knowledge"
 test -x "$root/bin/build-docs"
+test -x "$root/bin/build-codex-plugin"
+test -x "$root/bin/install-codex-plugin"
+test -x "$root/tests/verify-codex-plugin.sh"
 "$root/bin/build-knowledge" --check
+"$root/bin/build-codex-plugin" --write
+"$root/bin/build-codex-plugin" --check
 require_text knowledge/catalog.yml 'workflow.bug-fix'
 require_text knowledge/catalog.yml 'role.engineer'
 require_text knowledge/catalog.yml 'workflow.no-bullshit-bug-fix'
 require_text knowledge/catalog.yml 'context: "knowledge/context/bug-fix.md"'
 require_text codex/AGENTS.md.snippet 'knowledge/catalog.yml'
 require_text codex/AGENTS.md.snippet 'context` field'
+require_text codex/AGENTS.global-plugin.snippet 'globally installed `product-os` Codex plugin'
+require_text codex/AGENTS.global-plugin.snippet '<!-- product-os:global-plugin:start -->'
+require_text README.md 'Install once for Codex (recommended)'
+require_text README.md 'bin/install-codex-plugin'
 require_text knowledge/catalog.md '# Product OS catalog'
 require_text knowledge/catalog.md 'No-Bullshit Bug Fix'
 require_text knowledge/catalog.md 'open generated pack'

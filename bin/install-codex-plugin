@@ -1,0 +1,117 @@
+#!/usr/bin/env sh
+set -eu
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+codex_root=${CODEX_HOME:-"$HOME/.codex"}
+creator="$codex_root/skills/.system/plugin-creator/scripts/create_basic_plugin.py"
+validator="$codex_root/skills/.system/plugin-creator/scripts/validate_plugin.py"
+marketplace_reader="$codex_root/skills/.system/plugin-creator/scripts/read_marketplace_name.py"
+cachebuster="$codex_root/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py"
+plugin_parent=${PRODUCT_OS_PLUGIN_PARENT:-"$HOME/plugins"}
+destination="$plugin_parent/product-os"
+marketplace=${PRODUCT_OS_MARKETPLACE_PATH:-"$HOME/.agents/plugins/marketplace.json"}
+codex_command=${PRODUCT_OS_CODEX_COMMAND:-codex}
+dry_run=false
+
+usage() {
+  cat <<'EOF'
+Usage: bin/install-codex-plugin [--dry-run]
+
+Builds and validates Product OS, then installs it from the personal Codex marketplace.
+EOF
+}
+
+case ${1:-} in
+  '') ;;
+  --dry-run) dry_run=true ;;
+  -h|--help) usage; exit 0 ;;
+  *) usage >&2; exit 2 ;;
+esac
+
+stage=$(mktemp -d "${TMPDIR:-/tmp}/product-os-plugin-install.XXXXXX")
+backup=''
+bootstrap=''
+cleanup() {
+  rm -rf "$stage"
+  if [ -n "$bootstrap" ] && [ -d "$bootstrap" ]; then
+    rm -rf "$bootstrap"
+  fi
+  if [ -n "$backup" ] && [ -e "$backup" ]; then
+    rm -rf "$backup"
+  fi
+}
+trap cleanup EXIT HUP INT TERM
+
+"$root/bin/build-knowledge" --check
+"$root/bin/build-codex-plugin" --output "$stage/product-os" --write
+if python3 -c 'import yaml' >/dev/null 2>&1; then
+  python3 "$validator" "$stage/product-os"
+elif command -v uv >/dev/null 2>&1; then
+  uv run --with pyyaml python "$validator" "$stage/product-os"
+else
+  printf 'Product OS plugin validation needs PyYAML. Install it for Python or install uv and retry.\n' >&2
+  exit 1
+fi
+
+if [ "$dry_run" = true ]; then
+  printf 'dry-run: would install validated plugin at %s and use %s\n' "$destination" "$marketplace"
+  exit 0
+fi
+
+if [ ! -f "$creator" ] || [ ! -f "$validator" ] || [ ! -f "$marketplace_reader" ] || [ ! -f "$cachebuster" ]; then
+  printf 'Codex plugin-creator tooling was not found under %s. Run this from Codex Desktop.\n' "$codex_root" >&2
+  exit 1
+fi
+
+marketplace_has_product_os() {
+  python3 - "$marketplace" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+plugins = payload.get("plugins", [])
+raise SystemExit(0 if any(isinstance(entry, dict) and entry.get("name") == "product-os" for entry in plugins) else 1)
+PY
+}
+
+if [ ! -d "$destination" ]; then
+  python3 "$creator" product-os --path "$plugin_parent" --with-skills --with-marketplace --marketplace-path "$marketplace"
+elif [ ! -f "$marketplace" ] || ! marketplace_has_product_os; then
+  bootstrap=$(mktemp -d "${TMPDIR:-/tmp}/product-os-marketplace.XXXXXX")
+  python3 "$creator" product-os --path "$bootstrap" --with-skills --with-marketplace --marketplace-path "$marketplace"
+  rm -rf "$bootstrap"
+  bootstrap=''
+fi
+
+if [ ! -d "$destination" ]; then
+  printf 'Expected Product OS plugin scaffold was not created at %s\n' "$destination" >&2
+  exit 1
+fi
+
+marketplace_name=$(python3 "$marketplace_reader" --marketplace-path "$marketplace")
+
+mkdir -p "$plugin_parent"
+backup="$plugin_parent/.product-os.previous.$$"
+if [ -e "$backup" ]; then
+  printf 'Refusing to replace Product OS while backup path already exists: %s\n' "$backup" >&2
+  exit 1
+fi
+mv "$destination" "$backup"
+if ! mv "$stage/product-os" "$destination"; then
+  mv "$backup" "$destination"
+  backup=''
+  exit 1
+fi
+
+python3 "$cachebuster" "$destination"
+if ! "$codex_command" plugin add "product-os@$marketplace_name"; then
+  rm -rf "$destination"
+  mv "$backup" "$destination"
+  backup=''
+  printf 'Codex installation failed; restored the previous Product OS plugin source.\n' >&2
+  exit 1
+fi
+rm -rf "$backup"
+backup=''
+printf 'Installed Product OS for Codex. Start a new Codex thread to load its skills.\n'

@@ -30,11 +30,38 @@ The durable files, not prior chat messages, are the source of truth. Every workf
 
 Every route records classification, owner, entry/exit criteria, decision authority, evidence, pause/resume condition, next action, and close-out. Release readiness, production enablement, monitoring, and postmortems are conditional stages: record `not applicable` and why when they are outside a run's scope.
 
-## Install in another project
+## Install once for Codex (recommended)
+
+Product OS can be installed once as a personal Codex plugin, so a new Codex chat can use its roles and workflows in any repository without copying this toolkit first.
+
+From a checkout of this repository, run:
+
+```sh
+bin/install-codex-plugin
+```
+
+The installer builds and validates an ignored bundle, creates the default personal marketplace on first use, installs the plugin at `~/plugins/product-os`, and adds `product-os@personal` to Codex. It does not modify any target repository. Start a **new Codex thread** after installation so its skills are loaded.
+
+In a target repository, ask Codex to **initialize Product OS in this repository**. The explicit initializer creates only:
+
+```text
+product/
+  active/
+  archive/
+  memory/
+    index.md
+    decision-log.md
+```
+
+It also adds a delimited Product OS block to `AGENTS.md`, preserving every existing instruction. A workflow run, PRD, tech spec, hand-off, or decision is created only when you ask to start that work. Product OS never stores project state in the global plugin.
+
+To update after pulling a newer version of this repository, run the same command again. It stages and validates the replacement before changing the installed source; if Codex cannot reinstall it, the previous plugin source is restored. Use `bin/install-codex-plugin --dry-run` to validate the installation path without changing your Codex setup.
+
+## Install in another project (portable package)
 
 Copy the `product-os/` directory into the target repository. Then create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Product OS needs only Python 3 from the host standard installation to validate and regenerate its knowledge catalog. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
 
-For name-first use in Codex, merge `product-os/codex/AGENTS.md.snippet` into the target repository's existing `AGENTS.md`. It tells Codex to resolve names through `registry.tsv` before asking you for a file path, while leaving the repository's own coding instructions in charge. This is routing guidance, not native slash commands or background agents.
+For name-first use in Codex without the global plugin, merge `product-os/codex/AGENTS.md.snippet` into the target repository's existing `AGENTS.md`. It tells Codex to resolve names through `registry.tsv` before asking you for a file path, while leaving the repository's own coding instructions in charge. This is routing guidance, not native slash commands or background agents.
 
 ## Knowledge catalog
 
@@ -101,7 +128,7 @@ The file-backed memory index is required. A graph backend such as Graphiti is op
 
 ## Verify the package
 
-Run `product-os/bin/build-knowledge --check`, `product-os/bin/build-docs --write`, `product-os/bin/build-docs --check`, and `sh product-os/tests/verify.sh` from the repository root. They check the knowledge metadata, generated discovery/context pages, public allowlist boundary, workflows, communication, portability, and file-memory contracts. Install `requirements-docs.txt` as shown above when also running the strict Material static-site build.
+Run `bin/build-knowledge --check`, `bin/build-codex-plugin --write`, `bin/build-codex-plugin --check`, `bin/build-docs --write`, `bin/build-docs --check`, `sh tests/verify.sh`, and `sh tests/verify-codex-plugin.sh` from this repository root. They check the knowledge metadata, global-plugin package, generated discovery/context pages, public allowlist boundary, workflows, communication, portability, and file-memory contracts. Install `requirements-docs.txt` as shown above when also running the strict Material static-site build.
 
 ## License
 

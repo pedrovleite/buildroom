@@ -1,6 +1,8 @@
 # Example target-project layout
 
-Create this alongside your application code after copying `product-os/`:
+When using the globally installed Codex plugin, ask Codex to **initialize Product OS in this repository**. It creates the durable folders below and adds only its marked routing block to the existing `AGENTS.md`; it never creates a run until you start work.
+
+Create this alongside your application code after copying `product-os/` when using the portable-package mode:
 
 ```text
 product/
@@ -17,6 +19,8 @@ product/
 
 Copy templates from `product-os/templates/`, replacing placeholder IDs. Keep `product/` under version control. The target project's `AGENTS.md` and coding standards remain authoritative for code changes.
 
-To let a Codex conversation recognise `Researcher`, `PM`, `QA`, or workflow names without you typing a Markdown path, merge `product-os/codex/AGENTS.md.snippet` into the target project's existing `AGENTS.md`. The snippet only adds Product OS name routing; it must not replace the host project's instructions.
+The global plugin already lets a new Codex conversation recognise `Researcher`, `PM`, `QA`, and workflow names. The initializer inserts `codex/AGENTS.global-plugin.snippet` as a marked block so the repository explains where durable state belongs; it must not replace the host project's instructions.
+
+For portable-package mode, merge `product-os/codex/AGENTS.md.snippet` into the target project's existing `AGENTS.md`. That snippet only adds Product OS name routing; it must not replace the host project's instructions.
 
 At the start of each run, choose `light`, `standard`, or `high-impact` in `workflow-state.md`. Use the express `no-bullshit-bug-fix` workflow only for a known, local, reversible correction with a regression check; its invocation is approval, but any production, data, security/privacy, migration, contract, uncertainty, or broad-impact condition routes to the standard Bug Fix workflow.

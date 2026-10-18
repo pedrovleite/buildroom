@@ -12,3 +12,6 @@ product/active/
 # Reproducible local documentation inputs and static output.
 .product-os-docs/
 .product-os-site/
+
+# Reproducible local Codex-plugin bundle.
+.product-os-plugin/
