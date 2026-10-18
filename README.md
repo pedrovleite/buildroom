@@ -118,15 +118,7 @@ Resolution is case-insensitive and deterministic. Unknown names fail with the va
 
 ## Run operations
 
-Run operations always target an initialized repository; pass `--project <path>` when it is not the current directory. Workflow names, aliases, and workflow IDs are accepted, but a work ID must be explicit:
-
-```sh
-sh buildroom/bin/buildroom start feature WORK-101 --project .
-sh buildroom/bin/buildroom check WORK-101 --project .
-sh buildroom/bin/buildroom start no-bullshit-bug-fix FIX-42 --approve-express --project .
-```
-
-`start` refuses unknown workflows, invalid IDs, existing runs, symbolic links, and uninitialized projects. The express route requires `--approve-express`; this records its narrow invocation approval but does not waive its eligibility or regression checks. `check` is read-only: `READY` and `WARNING` exit successfully, while each `BLOCKER` includes a next action and exits non-zero. It makes human approvals and hand-off acknowledgements visible but cannot satisfy them.
+For command reference, examples, exit codes, and the express-route boundary, read the public [Run operations guide](https://pedrovleite.github.io/buildroom/run-operations/). The public documentation navigation also exposes this guide directly.
 
 For a future BMad distribution, package these role cards and workflows as a custom module. The workflow artefacts remain valid whether invoked from BMad, Paperclip, or a direct Codex chat.
 

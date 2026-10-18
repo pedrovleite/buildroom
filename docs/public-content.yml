@@ -3,6 +3,8 @@ version: 1
 public_files:
   - source: README.md
     destination: operating-model.md
+  - source: docs/run-operations.md
+    destination: run-operations.md
   - source: knowledge/README.md
     destination: knowledge/README.md
   - source: knowledge/catalog.md
