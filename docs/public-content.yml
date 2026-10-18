@@ -1,0 +1,41 @@
+version: 1
+# Public by explicit inclusion only. Every other repository file stays private.
+public_files:
+  - source: README.md
+    destination: operating-model.md
+  - source: knowledge/README.md
+    destination: knowledge/README.md
+  - source: knowledge/catalog.md
+    destination: knowledge/catalog.md
+  - source: knowledge/taxonomy.md
+    destination: knowledge/taxonomy.md
+  - source: agents/researcher.md
+    destination: agents/researcher.md
+  - source: agents/product-manager.md
+    destination: agents/product-manager.md
+  - source: agents/architect.md
+    destination: agents/architect.md
+  - source: agents/engineer.md
+    destination: agents/engineer.md
+  - source: agents/qa-reviewer.md
+    destination: agents/qa-reviewer.md
+  - source: workflows/research-to-prd.md
+    destination: workflows/research-to-prd.md
+  - source: workflows/prd-to-tech-spec.md
+    destination: workflows/prd-to-tech-spec.md
+  - source: workflows/feature-delivery.md
+    destination: workflows/feature-delivery.md
+  - source: workflows/bug-fix.md
+    destination: workflows/bug-fix.md
+  - source: workflows/no-bullshit-bug-fix.md
+    destination: workflows/no-bullshit-bug-fix.md
+  - source: knowledge/context/research-to-prd.md
+    destination: knowledge/context/research-to-prd.md
+  - source: knowledge/context/prd-to-tech-spec.md
+    destination: knowledge/context/prd-to-tech-spec.md
+  - source: knowledge/context/feature-delivery.md
+    destination: knowledge/context/feature-delivery.md
+  - source: knowledge/context/bug-fix.md
+    destination: knowledge/context/bug-fix.md
+  - source: knowledge/context/no-bullshit-bug-fix.md
+    destination: knowledge/context/no-bullshit-bug-fix.md

@@ -1,0 +1,2 @@
+# Keep the supported major version while allowing compatible security updates.
+mkdocs-material==9.*
