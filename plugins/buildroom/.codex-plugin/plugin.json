@@ -1,28 +1,28 @@
 {
-  "name": "product-os",
+  "name": "buildroom",
   "version": "0.1.0",
-  "description": "Global Product OS workflows, roles, and per-project durable delivery state for Codex.",
+  "description": "Global Buildroom workflows, roles, and per-project durable delivery state for Codex.",
   "author": {
     "name": "Pedro V. Leite",
     "url": "https://github.com/pedrovleite"
   },
-  "homepage": "https://pedrovleite.github.io/product-os/",
-  "repository": "https://github.com/pedrovleite/product-os",
+  "homepage": "https://pedrovleite.github.io/buildroom/",
+  "repository": "https://github.com/pedrovleite/buildroom",
   "license": "MIT",
   "keywords": ["product", "workflows", "prd", "specification", "delivery"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Product OS",
+    "displayName": "Buildroom",
     "shortDescription": "Product workflows and durable project state for Codex.",
     "longDescription": "Routes product work through research, PRD, technical design, delivery, and bug-fix workflows while keeping project state in the repository.",
     "developerName": "Pedro V. Leite",
     "category": "Productivity",
     "capabilities": ["Guidance", "Write"],
-    "websiteURL": "https://pedrovleite.github.io/product-os/",
+    "websiteURL": "https://pedrovleite.github.io/buildroom/",
     "defaultPrompt": [
-      "Use Product OS to plan this feature.",
-      "Initialize Product OS in this repository.",
-      "Route this bug through Product OS."
+      "Use Buildroom to plan this feature.",
+      "Initialize Buildroom in this repository.",
+      "Route this bug through Buildroom."
     ],
     "brandColor": "#2563EB"
   }

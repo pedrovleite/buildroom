@@ -1,7 +1,7 @@
 version: 1
 # Controlled vocabulary. Tags are hierarchical slash-separated identifiers.
 tags:
-  - domain/product-os
+  - domain/buildroom
   - artifact/role
   - artifact/workflow
   - role/research

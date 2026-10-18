@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize only the durable, repository-local state required by Product OS."""
+"""Initialize only the durable, repository-local state required by Buildroom."""
 
 from __future__ import annotations
 
@@ -8,13 +8,15 @@ import sys
 from pathlib import Path
 
 
-START = "<!-- product-os:global-plugin:start -->"
-END = "<!-- product-os:global-plugin:end -->"
+START = "<!-- buildroom:global-plugin:start -->"
+END = "<!-- buildroom:global-plugin:end -->"
+LEGACY_START = "<!-- product-os:global-plugin:start -->"
+LEGACY_END = "<!-- product-os:global-plugin:end -->"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Initialize Product OS state in one target repository."
+        description="Initialize Buildroom state in one target repository."
     )
     parser.add_argument("repository", help="Target repository directory")
     parser.add_argument(
@@ -29,34 +31,54 @@ def plugin_root() -> Path:
 
 def managed_block() -> str:
     snippet = (
-        plugin_root() / "skills" / "product-os" / "references" / "toolkit" / "codex"
+        plugin_root() / "skills" / "buildroom" / "references" / "toolkit" / "codex"
         / "AGENTS.global-plugin.snippet"
     )
     try:
         content = snippet.read_text(encoding="utf-8").strip()
     except OSError as error:
-        raise ValueError(f"Cannot read bundled Product OS routing snippet: {snippet}") from error
+        raise ValueError(f"Cannot read bundled Buildroom routing snippet: {snippet}") from error
     if content.count(START) != 1 or content.count(END) != 1:
-        raise ValueError("Bundled Product OS routing snippet has invalid markers.")
+        raise ValueError("Bundled Buildroom routing snippet has invalid markers.")
     return content + "\n"
 
 
-def merge_agents(existing: str, block: str) -> str:
-    starts = existing.count(START)
-    ends = existing.count(END)
+def marker_count(existing: str, start: str, end: str, label: str) -> int:
+    starts = existing.count(start)
+    ends = existing.count(end)
     if starts != ends or starts > 1:
         raise ValueError(
-            "AGENTS.md has malformed Product OS markers. Repair or remove the marked block before retrying."
+            f"AGENTS.md has malformed {label} markers. Repair or remove the marked block before retrying."
         )
-    if starts == 0:
-        separator = "" if not existing or existing.endswith("\n\n") else "\n"
-        return existing + separator + block
-    start = existing.index(START)
-    end = existing.index(END, start) + len(END)
+    if starts and existing.index(start) > existing.index(end):
+        raise ValueError(
+            f"AGENTS.md has malformed {label} markers. Repair or remove the marked block before retrying."
+        )
+    return starts
+
+
+def replace_marked_block(existing: str, start_marker: str, end_marker: str, block: str) -> str:
+    start = existing.index(start_marker)
+    end = existing.index(end_marker, start) + len(end_marker)
     suffix = existing[end:]
     if suffix.startswith("\n"):
         suffix = suffix[1:]
     return existing[:start] + block + suffix
+
+
+def merge_agents(existing: str, block: str) -> str:
+    current = marker_count(existing, START, END, "Buildroom")
+    legacy = marker_count(existing, LEGACY_START, LEGACY_END, "legacy Product OS")
+    if current and legacy:
+        raise ValueError(
+            "AGENTS.md has both Buildroom and legacy Product OS markers. Keep one marked block before retrying."
+        )
+    if not current and not legacy:
+        separator = "" if not existing or existing.endswith("\n\n") else "\n"
+        return existing + separator + block
+    if current:
+        return replace_marked_block(existing, START, END, block)
+    return replace_marked_block(existing, LEGACY_START, LEGACY_END, block)
 
 
 def write_if_missing(path: Path, content: str, dry_run: bool, changes: list[str]) -> None:

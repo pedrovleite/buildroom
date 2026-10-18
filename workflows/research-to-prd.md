@@ -5,12 +5,12 @@ title: Research to PRD
 summary: Turns a product question into evidence, a bounded PRD, and an approved hand-off.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/workflow, workflow/research, risk/standard]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/workflow, workflow/research, risk/standard]
+applies_to: [buildroom]
 depends_on: [role.researcher, role.product-manager, role.architect]
 related: [workflow.prd-to-tech-spec]
 authority: human-product-approval
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 

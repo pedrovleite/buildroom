@@ -36,14 +36,14 @@ jobs:
         run: bin/build-docs --write
       - name: Build static site
         env:
-          PRODUCT_OS_SITE_URL: ${{ steps.pages.outputs.base_url }}
-          PRODUCT_OS_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
-          PRODUCT_OS_REPOSITORY_NAME: ${{ github.repository }}
+          BUILDROOM_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          BUILDROOM_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+          BUILDROOM_REPOSITORY_NAME: ${{ github.repository }}
         run: python -m mkdocs build --strict --config-file mkdocs.yml
       - name: Verify static artifact boundary
         run: |
           for excluded in templates memory tests docs bin .github registry.tsv knowledge/catalog.yml; do
-            test ! -e ".product-os-site/$excluded" || {
+            test ! -e ".buildroom-site/$excluded" || {
               echo "Excluded material reached the Pages artifact: $excluded" >&2
               exit 1
             }
@@ -51,7 +51,7 @@ jobs:
       - name: Upload curated Pages artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
-          path: .product-os-site
+          path: .buildroom-site
 
   deploy:
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)

@@ -18,4 +18,4 @@ This is a generated navigation pack. Read the canonical workflow first, then the
 ## Selection metadata
 - Catalog ID: `workflow.no-bullshit-bug-fix`
 - Authority: `workflow-invocation-is-human-approval`
-- Tags: `domain/product-os`, `artifact/workflow`, `workflow/bug-fix`, `workflow/express`
+- Tags: `domain/buildroom`, `artifact/workflow`, `workflow/bug-fix`, `workflow/express`

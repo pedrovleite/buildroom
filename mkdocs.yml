@@ -1,10 +1,10 @@
-site_name: Product OS
+site_name: Buildroom
 site_description: A file-first operating system for approved, verified product work.
-site_url: !ENV [PRODUCT_OS_SITE_URL, http://localhost:8000/]
-repo_url: !ENV [PRODUCT_OS_REPOSITORY_URL, https://example.invalid/product-os]
-repo_name: !ENV [PRODUCT_OS_REPOSITORY_NAME, local/product-os]
-docs_dir: .product-os-docs
-site_dir: .product-os-site
+site_url: !ENV [BUILDROOM_SITE_URL, http://localhost:8000/]
+repo_url: !ENV [BUILDROOM_REPOSITORY_URL, https://example.invalid/buildroom]
+repo_name: !ENV [BUILDROOM_REPOSITORY_NAME, local/buildroom]
+docs_dir: .buildroom-docs
+site_dir: .buildroom-site
 strict: true
 
 theme:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble the explicitly allowlisted Product OS MkDocs source tree."""
+"""Assemble the explicitly allowlisted Buildroom MkDocs source tree."""
 
 from __future__ import annotations
 
@@ -57,9 +57,9 @@ def safe_relative_path(value: str, manifest: Path) -> Path:
 
 
 def build_home() -> str:
-    return """# Product OS
+    return """# Buildroom
 
-Product OS is a file-first operating system for moving work from an idea or bug report to an approved, verified change.
+Buildroom is a file-first operating system for moving work from an idea or bug report to an approved, verified change.
 
 This public site is built from an explicit allowlist. The private repository contains additional templates, tests, memory guidance, and runtime material that are intentionally not published here.
 
@@ -91,7 +91,7 @@ def expected_files(root: Path) -> dict[Path, str]:
         except FileNotFoundError as exc:
             raise DocsError(f"{manifest}: allowlisted source is missing: {source_relative}") from exc
         if not resolved.is_relative_to(root.resolve()) or not source.is_file() or source.is_symlink():
-            raise DocsError(f"{manifest}: allowlisted source must be a regular file inside Product OS: {source_relative}")
+            raise DocsError(f"{manifest}: allowlisted source must be a regular file inside Buildroom: {source_relative}")
         expected[destination_relative] = source.read_text(encoding="utf-8")
     return expected
 
@@ -99,9 +99,9 @@ def expected_files(root: Path) -> dict[Path, str]:
 def validate_output(root: Path, output: Path) -> Path:
     resolved_root = root.resolve()
     resolved_output = output.resolve()
-    expected_output = resolved_root / ".product-os-docs"
+    expected_output = resolved_root / ".buildroom-docs"
     if resolved_output != expected_output:
-        raise DocsError("documentation output must be the dedicated .product-os-docs staging directory")
+        raise DocsError("documentation output must be the dedicated .buildroom-docs staging directory")
     return resolved_output
 
 
@@ -158,13 +158,13 @@ def run(root: Path, output: Path, mode: str) -> int:
                         print(f"Out of date staged documentation file: {path}", file=sys.stderr)
                 print("Run bin/build-docs --write to rebuild the curated documentation source.", file=sys.stderr)
                 return 1
-            print("Product OS documentation source is current and allowlisted.")
+            print("Buildroom documentation source is current and allowlisted.")
             return 0
         write_output(output, expected)
         print(f"Built curated documentation source in {output.relative_to(root)}")
         return 0
     except (DocsError, OSError, UnicodeError) as exc:
-        print(f"Product OS documentation build failed: {exc}", file=sys.stderr)
+        print(f"Buildroom documentation build failed: {exc}", file=sys.stderr)
         return 1
 
 
@@ -173,11 +173,11 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--write", action="store_true", help="assemble the allowlisted documentation source")
     mode.add_argument("--check", action="store_true", help="verify the staged documentation source is current")
-    parser.add_argument("--root", type=Path, help="Product OS root; defaults to this script's parent")
-    parser.add_argument("--output", type=Path, help="staging directory; defaults to .product-os-docs")
+    parser.add_argument("--root", type=Path, help="Buildroom root; defaults to this script's parent")
+    parser.add_argument("--output", type=Path, help="staging directory; defaults to .buildroom-docs")
     args = parser.parse_args()
     root = (args.root or Path(__file__).resolve().parent.parent).resolve()
-    output = args.output or root / ".product-os-docs"
+    output = args.output or root / ".buildroom-docs"
     return run(root, output, "write" if args.write else "check")
 
 

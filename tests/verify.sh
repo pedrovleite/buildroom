@@ -21,9 +21,9 @@ require_file() {
 
 for file in \
   README.md \
-  registry.tsv bin/product-os codex/AGENTS.md.snippet \
+  registry.tsv bin/buildroom codex/AGENTS.md.snippet \
   codex/AGENTS.global-plugin.snippet bin/build-knowledge bin/build-docs bin/build-codex-plugin bin/install-codex-plugin mkdocs.yml requirements-docs.txt docs/public-content.yml .github/workflows/docs.yml \
-  plugins/product-os/.codex-plugin/plugin.json plugins/product-os/skills/product-os/SKILL.md plugins/product-os/skills/product-os-init/SKILL.md plugins/product-os/scripts/init-project.py tests/verify-codex-plugin.sh \
+  plugins/buildroom/.codex-plugin/plugin.json plugins/buildroom/skills/buildroom/SKILL.md plugins/buildroom/skills/buildroom-init/SKILL.md plugins/buildroom/scripts/init-project.py tests/verify-codex-plugin.sh \
   knowledge/taxonomy.yml knowledge/taxonomy.md knowledge/schema.yml knowledge/README.md knowledge/catalog.yml knowledge/catalog.md \
   agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/qa-reviewer.md \
   workflows/research-to-prd.md workflows/prd-to-tech-spec.md workflows/feature-delivery.md workflows/bug-fix.md workflows/no-bullshit-bug-fix.md \
@@ -53,30 +53,30 @@ require_text knowledge/catalog.yml 'workflow.no-bullshit-bug-fix'
 require_text knowledge/catalog.yml 'context: "knowledge/context/bug-fix.md"'
 require_text codex/AGENTS.md.snippet 'knowledge/catalog.yml'
 require_text codex/AGENTS.md.snippet 'context` field'
-require_text codex/AGENTS.global-plugin.snippet 'globally installed `product-os` Codex plugin'
-require_text codex/AGENTS.global-plugin.snippet '<!-- product-os:global-plugin:start -->'
+require_text codex/AGENTS.global-plugin.snippet 'globally installed `buildroom` Codex plugin'
+require_text codex/AGENTS.global-plugin.snippet '<!-- buildroom:global-plugin:start -->'
 require_text README.md 'Install once for Codex (recommended)'
 require_text README.md 'bin/install-codex-plugin'
-require_text knowledge/catalog.md '# Product OS catalog'
+require_text knowledge/catalog.md '# Buildroom catalog'
 require_text knowledge/catalog.md 'No-Bullshit Bug Fix'
 require_text knowledge/catalog.md 'open generated pack'
-require_text knowledge/taxonomy.md '# Product OS taxonomy'
+require_text knowledge/taxonomy.md '# Buildroom taxonomy'
 require_text docs/public-content.yml 'workflows/no-bullshit-bug-fix.md'
 require_text mkdocs.yml 'name: material'
 require_text mkdocs.yml 'Context packs:'
-require_text mkdocs.yml 'PRODUCT_OS_SITE_URL'
+require_text mkdocs.yml 'BUILDROOM_SITE_URL'
 require_text mkdocs.yml 'http://localhost:8000/'
-require_text mkdocs.yml 'PRODUCT_OS_REPOSITORY_URL'
-require_text mkdocs.yml 'https://example.invalid/product-os'
+require_text mkdocs.yml 'BUILDROOM_REPOSITORY_URL'
+require_text mkdocs.yml 'https://example.invalid/buildroom'
 require_text requirements-docs.txt 'mkdocs-material==9.*'
 require_text .github/workflows/docs.yml 'branches: [main]'
 require_text .github/workflows/docs.yml 'pages: read'
 require_text .github/workflows/docs.yml 'bin/build-knowledge --check'
 require_text .github/workflows/docs.yml 'bin/build-docs --write'
-require_text .github/workflows/docs.yml 'PRODUCT_OS_SITE_URL: ${{ steps.pages.outputs.base_url }}'
+require_text .github/workflows/docs.yml 'BUILDROOM_SITE_URL: ${{ steps.pages.outputs.base_url }}'
 require_text .github/workflows/docs.yml 'if: github.ref == format('
 require_text .github/workflows/docs.yml 'for excluded in templates memory tests docs bin .github registry.tsv knowledge/catalog.yml; do'
-require_text .github/workflows/docs.yml 'path: .product-os-site'
+require_text .github/workflows/docs.yml 'path: .buildroom-site'
 require_text .github/workflows/docs.yml 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1'
 require_text .github/workflows/docs.yml 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0'
 require_text .github/workflows/docs.yml 'actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5'
@@ -108,24 +108,24 @@ make_knowledge_fixture() {
   cp -R "$root/agents" "$root/workflows" "$root/knowledge" "$destination/"
 }
 
-tmp_tag=$(mktemp -d "${TMPDIR:-/tmp}/product-os-tag.XXXXXX")
-tmp_relation=$(mktemp -d "${TMPDIR:-/tmp}/product-os-relation.XXXXXX")
-tmp_stale=$(mktemp -d "${TMPDIR:-/tmp}/product-os-stale.XXXXXX")
-tmp_write=$(mktemp -d "${TMPDIR:-/tmp}/product-os-write.XXXXXX")
-tmp_self=$(mktemp -d "${TMPDIR:-/tmp}/product-os-self.XXXXXX")
-tmp_kind=$(mktemp -d "${TMPDIR:-/tmp}/product-os-kind.XXXXXX")
-tmp_status=$(mktemp -d "${TMPDIR:-/tmp}/product-os-status.XXXXXX")
-tmp_orphan=$(mktemp -d "${TMPDIR:-/tmp}/product-os-orphan.XXXXXX")
-tmp_nested=$(mktemp -d "${TMPDIR:-/tmp}/product-os-nested.XXXXXX")
-tmp_quoted=$(mktemp -d "${TMPDIR:-/tmp}/product-os-quoted.XXXXXX")
-tmp_scalar=$(mktemp -d "${TMPDIR:-/tmp}/product-os-scalar.XXXXXX")
-tmp_dependency=$(mktemp -d "${TMPDIR:-/tmp}/product-os-dependency.XXXXXX")
-tmp_collision=$(mktemp -d "${TMPDIR:-/tmp}/product-os-collision.XXXXXX")
-tmp_docs=$(mktemp -d "${TMPDIR:-/tmp}/product-os-docs.XXXXXX")
-tmp_docs_invalid=$(mktemp -d "${TMPDIR:-/tmp}/product-os-docs-invalid.XXXXXX")
-tmp_taxonomy=$(mktemp -d "${TMPDIR:-/tmp}/product-os-taxonomy.XXXXXX")
-tmp_markdown=$(mktemp -d "${TMPDIR:-/tmp}/product-os-markdown.XXXXXX")
-tmp_docs_source_link=$(mktemp -d "${TMPDIR:-/tmp}/product-os-docs-source-link.XXXXXX")
+tmp_tag=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-tag.XXXXXX")
+tmp_relation=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-relation.XXXXXX")
+tmp_stale=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-stale.XXXXXX")
+tmp_write=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-write.XXXXXX")
+tmp_self=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-self.XXXXXX")
+tmp_kind=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-kind.XXXXXX")
+tmp_status=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-status.XXXXXX")
+tmp_orphan=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-orphan.XXXXXX")
+tmp_nested=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-nested.XXXXXX")
+tmp_quoted=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-quoted.XXXXXX")
+tmp_scalar=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-scalar.XXXXXX")
+tmp_dependency=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-dependency.XXXXXX")
+tmp_collision=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-collision.XXXXXX")
+tmp_docs=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-docs.XXXXXX")
+tmp_docs_invalid=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-docs-invalid.XXXXXX")
+tmp_taxonomy=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-taxonomy.XXXXXX")
+tmp_markdown=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-markdown.XXXXXX")
+tmp_docs_source_link=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-docs-source-link.XXXXXX")
 trap 'rm -rf "$tmp_tag" "$tmp_relation" "$tmp_stale" "$tmp_write" "$tmp_self" "$tmp_kind" "$tmp_status" "$tmp_orphan" "$tmp_nested" "$tmp_quoted" "$tmp_scalar" "$tmp_dependency" "$tmp_collision" "$tmp_docs" "$tmp_docs_invalid" "$tmp_taxonomy" "$tmp_markdown" "$tmp_docs_source_link"' EXIT HUP INT TERM
 
 expect_knowledge_error() {
@@ -139,7 +139,7 @@ expect_knowledge_error() {
 }
 
 make_knowledge_fixture "$tmp_tag"
-awk 'BEGIN { changed = 0 } { if (!changed && /domain\/product-os/) { sub("domain/product-os", "invalid/tag"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /domain\/buildroom/) { sub("domain/buildroom", "invalid/tag"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_tag/agents/researcher.md" > "$tmp_tag/researcher.md" && mv "$tmp_tag/researcher.md" "$tmp_tag/agents/researcher.md"
 expect_knowledge_error "$tmp_tag" 'unknown tag invalid/tag'
 
@@ -189,13 +189,13 @@ grep -Fq 'source: "agents/team/researcher.md"' "$tmp_nested/knowledge/catalog.ym
 "$root/bin/build-knowledge" --root "$tmp_nested" --check >/dev/null
 
 make_knowledge_fixture "$tmp_quoted"
-awk 'BEGIN { changed = 0 } { if (!changed && /applies_to: \[product-os\]/) { sub("\\[product-os\\]", "[\"product, os\"]"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /applies_to: \[buildroom\]/) { sub("\\[buildroom\\]", "[\"product, os\"]"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_quoted/agents/researcher.md" > "$tmp_quoted/researcher.md" && mv "$tmp_quoted/researcher.md" "$tmp_quoted/agents/researcher.md"
 "$root/bin/build-knowledge" --root "$tmp_quoted" --write >/dev/null
 grep -Fq 'applies_to: ["product, os"]' "$tmp_quoted/knowledge/catalog.yml"
 
 make_knowledge_fixture "$tmp_scalar"
-awk 'BEGIN { changed = 0 } { if (!changed && /^owner: product-os$/) { sub("product-os", "{team: platform}"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /^owner: buildroom$/) { sub("buildroom", "{team: platform}"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_scalar/agents/researcher.md" > "$tmp_scalar/researcher.md" && mv "$tmp_scalar/researcher.md" "$tmp_scalar/agents/researcher.md"
 expect_knowledge_error "$tmp_scalar" 'unsupported scalar syntax'
 
@@ -212,7 +212,7 @@ awk 'BEGIN { changed = 0 } { if (!changed && /^id: workflow.bug-fix$/) { sub("wo
 expect_knowledge_error "$tmp_collision" 'duplicate context-pack output: knowledge/context/bug-fix.md'
 
 make_knowledge_fixture "$tmp_taxonomy"
-awk 'BEGIN { changed = 0 } { if (!changed && /domain\/product-os/) { sub("domain/product-os", "domain|invalid"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /domain\/buildroom/) { sub("domain/buildroom", "domain|invalid"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_taxonomy/knowledge/taxonomy.yml" > "$tmp_taxonomy/taxonomy.yml" && mv "$tmp_taxonomy/taxonomy.yml" "$tmp_taxonomy/knowledge/taxonomy.yml"
 expect_knowledge_error "$tmp_taxonomy" "invalid taxonomy tag 'domain|invalid'"
 
@@ -240,30 +240,30 @@ test -f "$tmp_docs/memory/private-memory.md"
 test -f "$tmp_docs/tests/private-test.md"
 "$root/bin/build-docs" --root "$tmp_docs" --write >/dev/null
 "$root/bin/build-docs" --root "$tmp_docs" --check >/dev/null
-test -f "$tmp_docs/.product-os-docs/index.md"
-test -f "$tmp_docs/.product-os-docs/workflows/no-bullshit-bug-fix.md"
-test -f "$tmp_docs/.product-os-docs/knowledge/context/no-bullshit-bug-fix.md"
-test ! -e "$tmp_docs/.product-os-docs/templates"
-test ! -e "$tmp_docs/.product-os-docs/memory"
-test ! -e "$tmp_docs/.product-os-docs/tests"
-test ! -e "$tmp_docs/.product-os-docs/templates/private-template.md"
-test ! -e "$tmp_docs/.product-os-docs/memory/private-memory.md"
-test ! -e "$tmp_docs/.product-os-docs/tests/private-test.md"
+test -f "$tmp_docs/.buildroom-docs/index.md"
+test -f "$tmp_docs/.buildroom-docs/workflows/no-bullshit-bug-fix.md"
+test -f "$tmp_docs/.buildroom-docs/knowledge/context/no-bullshit-bug-fix.md"
+test ! -e "$tmp_docs/.buildroom-docs/templates"
+test ! -e "$tmp_docs/.buildroom-docs/memory"
+test ! -e "$tmp_docs/.buildroom-docs/tests"
+test ! -e "$tmp_docs/.buildroom-docs/templates/private-template.md"
+test ! -e "$tmp_docs/.buildroom-docs/memory/private-memory.md"
+test ! -e "$tmp_docs/.buildroom-docs/tests/private-test.md"
 printf '# private by default\n' > "$tmp_docs/unlisted.md"
-ln -s ../unlisted.md "$tmp_docs/.product-os-docs/unlisted-link.md"
+ln -s ../unlisted.md "$tmp_docs/.buildroom-docs/unlisted-link.md"
 if "$root/bin/build-docs" --root "$tmp_docs" --check >"$tmp_docs/output" 2>&1; then
   echo 'Documentation checks must reject symbolic links in the staging directory' >&2
   exit 1
 fi
 grep -Fq 'documentation output must not contain symbolic links' "$tmp_docs/output"
 "$root/bin/build-docs" --root "$tmp_docs" --write >/dev/null
-test ! -e "$tmp_docs/.product-os-docs/unlisted.md"
+test ! -e "$tmp_docs/.buildroom-docs/unlisted.md"
 
 if "$root/bin/build-docs" --root "$tmp_docs" --output "$tmp_docs/agents" --write >"$tmp_docs/output" 2>&1; then
   echo 'Documentation assembly must reject canonical source directories as output' >&2
   exit 1
 fi
-grep -Fq 'dedicated .product-os-docs staging directory' "$tmp_docs/output"
+grep -Fq 'dedicated .buildroom-docs staging directory' "$tmp_docs/output"
 test -f "$tmp_docs/agents/researcher.md"
 
 make_docs_fixture "$tmp_docs_source_link"
@@ -274,17 +274,17 @@ if "$root/bin/build-docs" --root "$tmp_docs_source_link" --write >"$tmp_docs_sou
   exit 1
 fi
 grep -Fq 'allowlisted source must be a regular file' "$tmp_docs_source_link/output"
-test ! -e "$tmp_docs_source_link/.product-os-docs"
+test ! -e "$tmp_docs_source_link/.buildroom-docs"
 
 make_docs_fixture "$tmp_docs_invalid"
-awk 'BEGIN { changed = 0 } { if (!changed && /domain\/product-os/) { sub("domain/product-os", "invalid/tag"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /domain\/buildroom/) { sub("domain/buildroom", "invalid/tag"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_docs_invalid/agents/researcher.md" > "$tmp_docs_invalid/researcher.md" && mv "$tmp_docs_invalid/researcher.md" "$tmp_docs_invalid/agents/researcher.md"
 if "$root/bin/build-docs" --root "$tmp_docs_invalid" --write >"$tmp_docs_invalid/output" 2>&1; then
   echo 'Documentation assembly must fail when knowledge metadata is invalid' >&2
   exit 1
 fi
 grep -Fq 'knowledge validation failed; documentation source was not assembled' "$tmp_docs_invalid/output"
-test ! -e "$tmp_docs_invalid/.product-os-docs"
+test ! -e "$tmp_docs_invalid/.buildroom-docs"
 
 while IFS= read -r destination; do
   grep -Fq -- ": $destination" "$root/mkdocs.yml" || {
@@ -393,47 +393,47 @@ require_text registry.tsv 'No-Bullshit Bug Fix'
 require_text codex/AGENTS.md.snippet 'registry.tsv'
 require_text README.md 'Name registry'
 
-resolve_output=$(sh "$root/bin/product-os" resolve Researcher)
+resolve_output=$(sh "$root/bin/buildroom" resolve Researcher)
 printf '%s\n' "$resolve_output" | grep -Fq 'Type: agent'
-printf '%s\n' "$resolve_output" | grep -Fq 'product-os/agents/researcher.md'
+printf '%s\n' "$resolve_output" | grep -Fq 'buildroom/agents/researcher.md'
 
-resolve_output=$(sh "$root/bin/product-os" resolve 'Product Manager')
+resolve_output=$(sh "$root/bin/buildroom" resolve 'Product Manager')
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Product Manager'
 
-resolve_output=$(sh "$root/bin/product-os" resolve pesquisador)
+resolve_output=$(sh "$root/bin/buildroom" resolve pesquisador)
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Researcher'
 
-resolve_output=$(sh "$root/bin/product-os" resolve PM)
+resolve_output=$(sh "$root/bin/buildroom" resolve PM)
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Product Manager'
 
-resolve_output=$(sh "$root/bin/product-os" resolve qa)
+resolve_output=$(sh "$root/bin/buildroom" resolve qa)
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: QA Reviewer'
 
-resolve_output=$(sh "$root/bin/product-os" resolve 'correção de bug')
+resolve_output=$(sh "$root/bin/buildroom" resolve 'correção de bug')
 printf '%s\n' "$resolve_output" | grep -Fq 'Type: workflow'
-printf '%s\n' "$resolve_output" | grep -Fq 'product-os/workflows/bug-fix.md'
+printf '%s\n' "$resolve_output" | grep -Fq 'buildroom/workflows/bug-fix.md'
 
-resolve_output=$(sh "$root/bin/product-os" resolve 'no bullshit bug fix')
+resolve_output=$(sh "$root/bin/buildroom" resolve 'no bullshit bug fix')
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: No-Bullshit Bug Fix'
-printf '%s\n' "$resolve_output" | grep -Fq 'product-os/workflows/no-bullshit-bug-fix.md'
+printf '%s\n' "$resolve_output" | grep -Fq 'buildroom/workflows/no-bullshit-bug-fix.md'
 
-resolve_output=$(sh "$root/bin/product-os" resolve 'No-Bullshit Bug Fix')
-printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: No-Bullshit Bug Fix'
-
-resolve_output=$(sh "$root/bin/product-os" resolve 'correção rápida')
+resolve_output=$(sh "$root/bin/buildroom" resolve 'No-Bullshit Bug Fix')
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: No-Bullshit Bug Fix'
 
-list_output=$(sh "$root/bin/product-os" list)
+resolve_output=$(sh "$root/bin/buildroom" resolve 'correção rápida')
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: No-Bullshit Bug Fix'
+
+list_output=$(sh "$root/bin/buildroom" list)
 printf '%s\n' "$list_output" | grep -Fq 'agent: Researcher'
 printf '%s\n' "$list_output" | grep -Fq 'workflow: Bug Fix'
 printf '%s\n' "$list_output" | grep -Fq 'workflow: No-Bullshit Bug Fix'
 
-test -x "$root/bin/product-os"
-"$root/bin/product-os" list >/dev/null
-if unknown_output=$(sh "$root/bin/product-os" resolve 'not an agent' 2>&1); then
+test -x "$root/bin/buildroom"
+"$root/bin/buildroom" list >/dev/null
+if unknown_output=$(sh "$root/bin/buildroom" resolve 'not an agent' 2>&1); then
   echo 'Unknown names must fail resolution' >&2
   exit 1
 fi
-printf '%s\n' "$unknown_output" | grep -Fq 'explicit `product-os/...` Markdown path'
+printf '%s\n' "$unknown_output" | grep -Fq 'explicit `buildroom/...` Markdown path'
 
-echo 'product-os verification passed'
+echo 'buildroom verification passed'

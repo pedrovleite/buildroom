@@ -1,6 +1,6 @@
-# Product OS for Codex
+# Buildroom for Codex
 
-`product-os` is a portable, file-first operating system for moving work from an idea or bug report to an approved, verified change. It is designed for a single ChatGPT/Codex subscription: a human starts a role in Codex, reviews its output, and explicitly approves each consequential hand-off.
+`buildroom` is a portable, file-first operating system for moving work from an idea or bug report to an approved, verified change. It is designed for a single ChatGPT/Codex subscription: a human starts a role in Codex, reviews its output, and explicitly approves each consequential hand-off.
 
 ## What it contains
 
@@ -17,7 +17,7 @@ The durable files, not prior chat messages, are the source of truth. Every workf
 1. Read `knowledge/catalog.yml` to select a route by stable ID, tags, authority, and relationships. For a workflow, use its `context` field to open the generated pack in the listed order.
 2. Choose the canonical workflow from `workflows/` and create a run folder under `product/active/<work-id>/`.
 3. Copy `templates/workflow-state.md` to that folder and complete it before asking Codex to act.
-4. Resolve a role or workflow by name when useful, then give Codex the run-folder path. For example, run `sh product-os/bin/product-os resolve Researcher` or `sh product-os/bin/product-os resolve 'bug fix'`. The response contains the canonical Markdown link and a ready-to-use Codex instruction. You may still name the role card and workflow file directly.
+4. Resolve a role or workflow by name when useful, then give Codex the run-folder path. For example, run `sh buildroom/bin/buildroom resolve Researcher` or `sh buildroom/bin/buildroom resolve 'bug fix'`. The response contains the canonical Markdown link and a ready-to-use Codex instruction. You may still name the role card and workflow file directly.
 5. At each role transition, copy `templates/handoff.md`, link the produced artefacts, and change the state owner. A recipient must reject an incomplete hand-off instead of guessing.
 6. Record material decisions in `product/memory/decision-log.md` and relationships in `product/memory/index.md`.
 
@@ -32,7 +32,7 @@ Every route records classification, owner, entry/exit criteria, decision authori
 
 ## Install once for Codex (recommended)
 
-Product OS can be installed once as a personal Codex plugin, so a new Codex chat can use its roles and workflows in any repository without copying this toolkit first.
+Buildroom can be installed once as a personal Codex plugin, so a new Codex chat can use its roles and workflows in any repository without copying this toolkit first.
 
 From a checkout of this repository, run:
 
@@ -40,9 +40,9 @@ From a checkout of this repository, run:
 bin/install-codex-plugin
 ```
 
-The installer builds and validates an ignored bundle, creates the default personal marketplace on first use, installs the plugin at `~/plugins/product-os`, and adds `product-os@personal` to Codex. It does not modify any target repository. Start a **new Codex thread** after installation so its skills are loaded.
+The installer builds and validates an ignored bundle, creates the default personal marketplace on first use, installs the plugin at `~/plugins/buildroom`, and adds `buildroom@personal` to Codex. It does not modify any target repository. Start a **new Codex thread** after installation so its skills are loaded.
 
-In a target repository, ask Codex to **initialize Product OS in this repository**. The explicit initializer creates only:
+In a target repository, ask Codex to **initialize Buildroom in this repository**. The explicit initializer creates only:
 
 ```text
 product/
@@ -53,15 +53,19 @@ product/
     decision-log.md
 ```
 
-It also adds a delimited Product OS block to `AGENTS.md`, preserving every existing instruction. A workflow run, PRD, tech spec, hand-off, or decision is created only when you ask to start that work. Product OS never stores project state in the global plugin.
+It also adds a delimited Buildroom block to `AGENTS.md`, preserving every existing instruction. A workflow run, PRD, tech spec, hand-off, or decision is created only when you ask to start that work. Buildroom never stores project state in the global plugin.
 
 To update after pulling a newer version of this repository, run the same command again. It stages and validates the replacement before changing the installed source; if Codex cannot reinstall it, the previous plugin source is restored. Use `bin/install-codex-plugin --dry-run` to validate the installation path without changing your Codex setup.
 
+### Upgrade from Product OS
+
+Rename a portable `product-os/` checkout to `buildroom/` (or update its subtree/submodule path), then update any repository routing snippet to use `buildroom` commands. Re-run `bin/install-codex-plugin`: after Buildroom is installed, it retires a legacy `~/plugins/product-os` source and `product-os@personal` registration when found. Finally, in every existing target repository, ask Codex to **initialize Buildroom in this repository**. That explicit migration replaces only one legacy Product OS marked block in `AGENTS.md`; it preserves surrounding instructions and all `product/` state.
+
 ## Install in another project (portable package)
 
-Copy the `product-os/` directory into the target repository. Then create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Product OS needs only Python 3 from the host standard installation to validate and regenerate its knowledge catalog. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
+Copy the `buildroom/` directory into the target repository. Then create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Buildroom needs only Python 3 from the host standard installation to validate and regenerate its knowledge catalog. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
 
-For name-first use in Codex without the global plugin, merge `product-os/codex/AGENTS.md.snippet` into the target repository's existing `AGENTS.md`. It tells Codex to resolve names through `registry.tsv` before asking you for a file path, while leaving the repository's own coding instructions in charge. This is routing guidance, not native slash commands or background agents.
+For name-first use in Codex without the global plugin, merge `buildroom/codex/AGENTS.md.snippet` into the target repository's existing `AGENTS.md`. It tells Codex to resolve names through `registry.tsv` before asking you for a file path, while leaving the repository's own coding instructions in charge. This is routing guidance, not native slash commands or background agents.
 
 ## Knowledge catalog
 
@@ -70,47 +74,47 @@ The canonical instructions stay in `agents/` and `workflows/`; their YAML frontm
 After changing metadata, run:
 
 ```sh
-product-os/bin/build-knowledge --write
-product-os/bin/build-knowledge --check
+buildroom/bin/build-knowledge --write
+buildroom/bin/build-knowledge --check
 ```
 
 The builder rejects duplicate or malformed IDs, unknown tags, invalid kinds/statuses, self-references, and broken `depends_on` or `related` links. It also generates `knowledge/catalog.md` and `knowledge/taxonomy.md` for the curated documentation site. This metadata layer is Git-native and private by default; only the separate allowlist below is eligible for publication.
 
 ## Curated documentation site
 
-The public documentation site is a presentation layer, not another source of truth. `docs/public-content.yml` is the explicit allowlist: only its Markdown files, plus a generated landing page, can enter `.product-os-docs/`. Templates, memory, tests, local runs, and any new files remain private by default.
+The public documentation site is a presentation layer, not another source of truth. `docs/public-content.yml` is the explicit allowlist: only its Markdown files, plus a generated landing page, can enter `.buildroom-docs/`. Templates, memory, tests, local runs, and any new files remain private by default.
 
 After changing source material, build and verify the staged documentation locally:
 
 ```sh
-product-os/bin/build-knowledge --write
-product-os/bin/build-docs --write
-product-os/bin/build-docs --check
-python3 -m pip install --requirement product-os/requirements-docs.txt
-python3 -m mkdocs build --strict --config-file product-os/mkdocs.yml
+buildroom/bin/build-knowledge --write
+buildroom/bin/build-docs --write
+buildroom/bin/build-docs --check
+python3 -m pip install --requirement buildroom/requirements-docs.txt
+python3 -m mkdocs build --strict --config-file buildroom/mkdocs.yml
 ```
 
-The static result is written to `.product-os-site/`; both directories are ignored. For a local preview after the first build, run `python3 -m mkdocs serve --config-file product-os/mkdocs.yml`.
+The static result is written to `.buildroom-site/`; both directories are ignored. For a local preview after the first build, run `python3 -m mkdocs serve --config-file buildroom/mkdocs.yml`.
 
-GitHub Actions publishes only `.product-os-site/` after a push to `main`, using the Pages artifact flow. Before the first deployment, enable **GitHub Actions** as the GitHub Pages publishing source in the repository settings. The repository is private, but this Pages site is deliberately public, so add a file to `docs/public-content.yml` only after deciding it is safe to disclose.
+GitHub Actions publishes only `.buildroom-site/` after a push to `main`, using the Pages artifact flow. Before the first deployment, enable **GitHub Actions** as the GitHub Pages publishing source in the repository settings. The repository is private, but this Pages site is deliberately public, so add a file to `docs/public-content.yml` only after deciding it is safe to disclose.
 
 ## Name registry
 
-`registry.tsv` is the single mapping between human-friendly names and Product OS files. It includes the five roles and five workflows, with English, Portuguese, and short aliases. Inspect available entries with:
+`registry.tsv` is the single mapping between human-friendly names and Buildroom files. It includes the five roles and five workflows, with English, Portuguese, and short aliases. Inspect available entries with:
 
 ```sh
-sh product-os/bin/product-os list
+sh buildroom/bin/buildroom list
 ```
 
 Resolve a name with:
 
 ```sh
-sh product-os/bin/product-os resolve PM
-sh product-os/bin/product-os resolve 'bug fix'
-sh product-os/bin/product-os resolve 'no bullshit bug fix'
+sh buildroom/bin/buildroom resolve PM
+sh buildroom/bin/buildroom resolve 'bug fix'
+sh buildroom/bin/buildroom resolve 'no bullshit bug fix'
 ```
 
-Resolution is case-insensitive and deterministic. Unknown names fail with the valid-name command instead of selecting a near match; the user can still continue by naming an explicit `product-os/...` Markdown path.
+Resolution is case-insensitive and deterministic. Unknown names fail with the valid-name command instead of selecting a near match; the user can still continue by naming an explicit `buildroom/...` Markdown path.
 
 For a future BMad distribution, package these role cards and workflows as a custom module. The workflow artefacts remain valid whether invoked from BMad, Paperclip, or a direct Codex chat.
 

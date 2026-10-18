@@ -7,8 +7,8 @@ registry="$package_root/registry.tsv"
 usage() {
   cat <<'EOF'
 Usage:
-  sh product-os/bin/product-os list
-  sh product-os/bin/product-os resolve <agent-or-workflow-name>
+  sh buildroom/bin/buildroom list
+  sh buildroom/bin/buildroom resolve <agent-or-workflow-name>
 
 Resolve accepts canonical names and documented aliases, ignoring case.
 EOF
@@ -24,7 +24,7 @@ normalise() {
 list_entries() {
   awk -F '\t' '
     NR == 1 { next }
-    { printf "%s: %s → product-os/%s\n", $1, $2, $4 }
+    { printf "%s: %s → buildroom/%s\n", $1, $2, $4 }
   ' "$registry"
 }
 
@@ -65,11 +65,11 @@ resolve() {
   case "$status" in
     0) ;;
     1)
-      printf 'Unknown Product OS name: %s\nUse `sh product-os/bin/product-os list` to see recognised names, or continue by supplying an explicit `product-os/...` Markdown path.\n' "$requested" >&2
+      printf 'Unknown Buildroom name: %s\nUse `sh buildroom/bin/buildroom list` to see recognised names, or continue by supplying an explicit `buildroom/...` Markdown path.\n' "$requested" >&2
       exit 1
       ;;
     *)
-      printf 'Ambiguous Product OS name: %s\nFix the duplicate aliases in product-os/registry.tsv.\n' "$requested" >&2
+      printf 'Ambiguous Buildroom name: %s\nFix the duplicate aliases in buildroom/registry.tsv.\n' "$requested" >&2
       exit 2
       ;;
   esac
@@ -79,16 +79,16 @@ resolve() {
   path=$(printf '%s\n' "$matches" | awk -F '\t' '{ print $4 }')
   kind=$(printf '%s\n' "$matches" | awk -F '\t' '{ print $5 }')
 
-  printf 'Resolved: %s\nType: %s\nLink: [product-os/%s](product-os/%s)\n' "$name" "$type" "$path" "$path"
+  printf 'Resolved: %s\nType: %s\nLink: [buildroom/%s](buildroom/%s)\n' "$name" "$type" "$path" "$path"
   if [ "$kind" = 'role' ]; then
-    printf 'Codex: Act as the %s defined in `product-os/%s`; read it before continuing.\n' "$name" "$path"
+    printf 'Codex: Act as the %s defined in `buildroom/%s`; read it before continuing.\n' "$name" "$path"
   else
-    printf 'Codex: Follow the %s workflow in `product-os/%s`; read it before continuing.\n' "$name" "$path"
+    printf 'Codex: Follow the %s workflow in `buildroom/%s`; read it before continuing.\n' "$name" "$path"
   fi
 }
 
 if [ ! -f "$registry" ]; then
-  printf 'Missing Product OS registry: %s\nContinue by supplying an explicit `product-os/...` Markdown path.\n' "$registry" >&2
+  printf 'Missing Buildroom registry: %s\nContinue by supplying an explicit `buildroom/...` Markdown path.\n' "$registry" >&2
   exit 2
 fi
 

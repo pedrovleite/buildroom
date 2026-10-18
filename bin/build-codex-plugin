@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the Product OS Codex plugin from the repository's canonical sources."""
+"""Build the Buildroom Codex plugin from the repository's canonical sources."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PLUGIN = ROOT / "plugins" / "product-os"
-DEFAULT_OUTPUT = ROOT / ".product-os-plugin"
+SOURCE_PLUGIN = ROOT / "plugins" / "buildroom"
+DEFAULT_OUTPUT = ROOT / ".buildroom-plugin"
 TOOLKIT_ITEMS = (
     "agents",
     "workflows",
@@ -22,14 +22,14 @@ TOOLKIT_ITEMS = (
     "knowledge",
     "memory",
     "registry.tsv",
-    "bin/product-os",
+    "bin/buildroom",
     "codex/AGENTS.global-plugin.snippet",
 )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build or check the staged Product OS Codex plugin."
+        description="Build or check the staged Buildroom Codex plugin."
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -40,7 +40,7 @@ def parse_args() -> argparse.Namespace:
 
 def copy_item(source: Path, destination: Path) -> None:
     if not source.exists():
-        raise ValueError(f"Missing canonical Product OS source: {source.relative_to(ROOT)}")
+        raise ValueError(f"Missing canonical Buildroom source: {source.relative_to(ROOT)}")
     if source.is_dir():
         shutil.copytree(source, destination)
     else:
@@ -50,9 +50,9 @@ def copy_item(source: Path, destination: Path) -> None:
 
 def build(stage: Path) -> None:
     if not SOURCE_PLUGIN.is_dir():
-        raise ValueError("Missing versioned plugin source: plugins/product-os")
+        raise ValueError("Missing versioned plugin source: plugins/buildroom")
     shutil.copytree(SOURCE_PLUGIN, stage)
-    toolkit = stage / "skills" / "product-os" / "references" / "toolkit"
+    toolkit = stage / "skills" / "buildroom" / "references" / "toolkit"
     toolkit.mkdir(parents=True)
     for relative in TOOLKIT_ITEMS:
         copy_item(ROOT / relative, toolkit / relative)
@@ -102,9 +102,9 @@ def main() -> None:
         or output in SOURCE_PLUGIN.parents
         or SOURCE_PLUGIN in output.parents
     ):
-        raise SystemExit("Plugin output must not replace the Product OS source directory.")
-    with tempfile.TemporaryDirectory(prefix="product-os-plugin-") as temporary:
-        stage = Path(temporary) / "product-os"
+        raise SystemExit("Plugin output must not replace the Buildroom source directory.")
+    with tempfile.TemporaryDirectory(prefix="buildroom-plugin-") as temporary:
+        stage = Path(temporary) / "buildroom"
         try:
             build(stage)
         except ValueError as error:
@@ -112,16 +112,16 @@ def main() -> None:
         if args.check:
             if not output.is_dir() or not directories_match(stage, output):
                 raise SystemExit(
-                    f"Product OS plugin bundle is missing or out of date: {output}. "
+                    f"Buildroom plugin bundle is missing or out of date: {output}. "
                     "Run bin/build-codex-plugin --write."
                 )
-            print(f"Product OS plugin bundle is current: {output}")
+            print(f"Buildroom plugin bundle is current: {output}")
             return
         try:
             replace_output(stage, output)
         except ValueError as error:
             raise SystemExit(str(error)) from error
-        print(f"Built Product OS plugin bundle: {output}")
+        print(f"Built Buildroom plugin bundle: {output}")
 
 
 if __name__ == "__main__":

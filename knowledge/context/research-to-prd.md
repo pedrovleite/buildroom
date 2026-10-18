@@ -22,4 +22,4 @@ This is a generated navigation pack. Read the canonical workflow first, then the
 ## Selection metadata
 - Catalog ID: `workflow.research-to-prd`
 - Authority: `human-product-approval`
-- Tags: `domain/product-os`, `artifact/workflow`, `workflow/research`, `risk/standard`
+- Tags: `domain/buildroom`, `artifact/workflow`, `workflow/research`, `risk/standard`

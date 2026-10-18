@@ -5,12 +5,12 @@ title: PRD to Technical Spec
 summary: Converts an approved PRD into an implementation-ready technical design.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/workflow, workflow/specification, risk/standard, risk/high-impact]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/workflow, workflow/specification, risk/standard, risk/high-impact]
+applies_to: [buildroom]
 depends_on: [role.architect, role.engineer]
 related: [workflow.research-to-prd, workflow.feature-delivery]
 authority: human-design-approval
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 

@@ -5,12 +5,12 @@ title: No-Bullshit Bug Fix
 summary: Applies a pre-approved, local, reversible defect correction with a proven regression check.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/workflow, workflow/bug-fix, workflow/express]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/workflow, workflow/bug-fix, workflow/express]
+applies_to: [buildroom]
 depends_on: [role.engineer]
 related: [workflow.bug-fix]
 authority: workflow-invocation-is-human-approval
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 
