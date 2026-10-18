@@ -20,4 +20,4 @@ This is a generated navigation pack. Read the canonical workflow first, then the
 ## Selection metadata
 - Catalog ID: `workflow.prd-to-tech-spec`
 - Authority: `human-design-approval`
-- Tags: `domain/product-os`, `artifact/workflow`, `workflow/specification`, `risk/standard`, `risk/high-impact`
+- Tags: `domain/buildroom`, `artifact/workflow`, `workflow/specification`, `risk/standard`, `risk/high-impact`

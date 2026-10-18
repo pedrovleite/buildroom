@@ -5,12 +5,12 @@ title: QA Reviewer
 summary: Independently verifies agreed behaviour and release evidence.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/role, role/quality]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/role, role/quality]
+applies_to: [buildroom]
 depends_on: []
 related: [workflow.feature-delivery, workflow.bug-fix]
 authority: independent-verification
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 

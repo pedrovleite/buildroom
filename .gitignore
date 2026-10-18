@@ -6,9 +6,12 @@
 *.swp
 *~
 
-# Local Product OS runs belong to the host project, not this reusable package.
+# Local Buildroom runs belong to the host project, not this reusable package.
 product/active/
 
 # Reproducible local documentation inputs and static output.
-.product-os-docs/
-.product-os-site/
+.buildroom-docs/
+.buildroom-site/
+
+# Reproducible local Codex-plugin bundle.
+.buildroom-plugin/

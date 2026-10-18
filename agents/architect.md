@@ -5,12 +5,12 @@ title: Architect
 summary: Converts approved requirements into bounded, testable technical specifications.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/role, role/architecture]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/role, role/architecture]
+applies_to: [buildroom]
 depends_on: []
 related: [workflow.prd-to-tech-spec]
 authority: technical-design-with-human-approval
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 

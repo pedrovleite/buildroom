@@ -5,12 +5,12 @@ title: Feature Delivery
 summary: Delivers an approved feature with independent verification and conditional release gates.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/workflow, workflow/delivery, risk/standard, risk/high-impact]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/workflow, workflow/delivery, risk/standard, risk/high-impact]
+applies_to: [buildroom]
 depends_on: [role.engineer, role.qa-reviewer]
 related: [workflow.prd-to-tech-spec]
 authority: human-release-approval
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 

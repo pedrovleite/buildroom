@@ -7,12 +7,12 @@ entries:
     summary: "Converts approved requirements into bounded, testable technical specifications."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/role", "role/architecture"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/role", "role/architecture"]
+    applies_to: ["buildroom"]
     depends_on: []
     related: ["workflow.prd-to-tech-spec"]
     authority: "technical-design-with-human-approval"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "agents/architect.md"
   - id: "role.engineer"
@@ -21,12 +21,12 @@ entries:
     summary: "Implements an approved scope and records reproducible verification evidence."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/role", "role/engineering"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/role", "role/engineering"]
+    applies_to: ["buildroom"]
     depends_on: []
     related: ["workflow.feature-delivery", "workflow.bug-fix", "workflow.no-bullshit-bug-fix"]
     authority: "approved-implementation"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "agents/engineer.md"
   - id: "role.product-manager"
@@ -35,12 +35,12 @@ entries:
     summary: "Defines an approved, testable product requirement from evidence and intent."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/role", "role/product-management"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/role", "role/product-management"]
+    applies_to: ["buildroom"]
     depends_on: []
     related: ["workflow.research-to-prd", "workflow.prd-to-tech-spec"]
     authority: "product-scope-with-human-approval"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "agents/product-manager.md"
   - id: "role.qa-reviewer"
@@ -49,12 +49,12 @@ entries:
     summary: "Independently verifies agreed behaviour and release evidence."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/role", "role/quality"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/role", "role/quality"]
+    applies_to: ["buildroom"]
     depends_on: []
     related: ["workflow.feature-delivery", "workflow.bug-fix"]
     authority: "independent-verification"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "agents/qa-reviewer.md"
   - id: "role.researcher"
@@ -63,12 +63,12 @@ entries:
     summary: "Turns a product question into current cited evidence and marked uncertainty."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/role", "role/research"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/role", "role/research"]
+    applies_to: ["buildroom"]
     depends_on: []
     related: ["workflow.research-to-prd"]
     authority: "evidence-and-handoff"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "agents/researcher.md"
   - id: "workflow.bug-fix"
@@ -77,12 +77,12 @@ entries:
     summary: "Investigates and corrects a defect with explicit approval and independent verification."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/workflow", "workflow/bug-fix", "risk/standard", "risk/high-impact"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/workflow", "workflow/bug-fix", "risk/standard", "risk/high-impact"]
+    applies_to: ["buildroom"]
     depends_on: ["role.qa-reviewer", "role.engineer"]
     related: ["workflow.no-bullshit-bug-fix"]
     authority: "human-fix-approval"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "workflows/bug-fix.md"
     context: "knowledge/context/bug-fix.md"
@@ -92,12 +92,12 @@ entries:
     summary: "Delivers an approved feature with independent verification and conditional release gates."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/workflow", "workflow/delivery", "risk/standard", "risk/high-impact"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/workflow", "workflow/delivery", "risk/standard", "risk/high-impact"]
+    applies_to: ["buildroom"]
     depends_on: ["role.engineer", "role.qa-reviewer"]
     related: ["workflow.prd-to-tech-spec"]
     authority: "human-release-approval"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "workflows/feature-delivery.md"
     context: "knowledge/context/feature-delivery.md"
@@ -107,12 +107,12 @@ entries:
     summary: "Applies a pre-approved, local, reversible defect correction with a proven regression check."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/workflow", "workflow/bug-fix", "workflow/express"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/workflow", "workflow/bug-fix", "workflow/express"]
+    applies_to: ["buildroom"]
     depends_on: ["role.engineer"]
     related: ["workflow.bug-fix"]
     authority: "workflow-invocation-is-human-approval"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "workflows/no-bullshit-bug-fix.md"
     context: "knowledge/context/no-bullshit-bug-fix.md"
@@ -122,12 +122,12 @@ entries:
     summary: "Converts an approved PRD into an implementation-ready technical design."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/workflow", "workflow/specification", "risk/standard", "risk/high-impact"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/workflow", "workflow/specification", "risk/standard", "risk/high-impact"]
+    applies_to: ["buildroom"]
     depends_on: ["role.architect", "role.engineer"]
     related: ["workflow.research-to-prd", "workflow.feature-delivery"]
     authority: "human-design-approval"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "workflows/prd-to-tech-spec.md"
     context: "knowledge/context/prd-to-tech-spec.md"
@@ -137,12 +137,12 @@ entries:
     summary: "Turns a product question into evidence, a bounded PRD, and an approved hand-off."
     status: "active"
     audience: ["human", "agent"]
-    tags: ["domain/product-os", "artifact/workflow", "workflow/research", "risk/standard"]
-    applies_to: ["product-os"]
+    tags: ["domain/buildroom", "artifact/workflow", "workflow/research", "risk/standard"]
+    applies_to: ["buildroom"]
     depends_on: ["role.researcher", "role.product-manager", "role.architect"]
     related: ["workflow.prd-to-tech-spec"]
     authority: "human-product-approval"
-    owner: "product-os"
+    owner: "buildroom"
     updated: "2026-10-18"
     source: "workflows/research-to-prd.md"
     context: "knowledge/context/research-to-prd.md"

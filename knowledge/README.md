@@ -1,4 +1,4 @@
-# Product OS knowledge contract
+# Buildroom knowledge contract
 
 `knowledge/` is a small, Git-native discovery layer for people and agents. The canonical operating instructions remain in `agents/` and `workflows/`; this directory indexes them without copying their prose.
 
@@ -21,8 +21,8 @@ Tags must come from `taxonomy.yml`. Use slash-separated tags so broad and narrow
 `catalog.yml`, `catalog.md`, `taxonomy.md`, and every file in `context/` are generated. A workflow catalog entry exposes its precise `context` path; `catalog.md` is the human-readable discovery index used by the documentation site. Read generated files freely, but never edit them by hand. Change source frontmatter or this contract, then run:
 
 ```sh
-product-os/bin/build-knowledge --write
-product-os/bin/build-knowledge --check
+buildroom/bin/build-knowledge --write
+buildroom/bin/build-knowledge --check
 ```
 
-The catalog is the first read for a Codex session choosing a Product OS role or route. A workflow context pack then gives the workflow source plus the linked role cards in the required read order. The builder validates missing/duplicate IDs, unknown tags, invalid values, broken relationships, self-references, and stale generated output.
+The catalog is the first read for a Codex session choosing a Buildroom role or route. A workflow context pack then gives the workflow source plus the linked role cards in the required read order. The builder validates missing/duplicate IDs, unknown tags, invalid values, broken relationships, self-references, and stale generated output.

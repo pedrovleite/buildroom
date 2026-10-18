@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""Build the Buildroom Codex plugin from the repository's canonical sources."""
+
+from __future__ import annotations
+
+import argparse
+import filecmp
+import os
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_PLUGIN = ROOT / "plugins" / "buildroom"
+DEFAULT_OUTPUT = ROOT / ".buildroom-plugin"
+TOOLKIT_ITEMS = (
+    "agents",
+    "workflows",
+    "templates",
+    "knowledge",
+    "memory",
+    "registry.tsv",
+    "bin/buildroom",
+    "codex/AGENTS.global-plugin.snippet",
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Build or check the staged Buildroom Codex plugin."
+    )
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--write", action="store_true", help="Rebuild the staged plugin")
+    mode.add_argument("--check", action="store_true", help="Verify the staged plugin is current")
+    return parser.parse_args()
+
+
+def copy_item(source: Path, destination: Path) -> None:
+    if not source.exists():
+        raise ValueError(f"Missing canonical Buildroom source: {source.relative_to(ROOT)}")
+    if source.is_dir():
+        shutil.copytree(source, destination)
+    else:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+
+
+def build(stage: Path) -> None:
+    if not SOURCE_PLUGIN.is_dir():
+        raise ValueError("Missing versioned plugin source: plugins/buildroom")
+    shutil.copytree(SOURCE_PLUGIN, stage)
+    toolkit = stage / "skills" / "buildroom" / "references" / "toolkit"
+    toolkit.mkdir(parents=True)
+    for relative in TOOLKIT_ITEMS:
+        copy_item(ROOT / relative, toolkit / relative)
+
+
+def directories_match(left: Path, right: Path) -> bool:
+    comparison = filecmp.dircmp(left, right)
+    if comparison.left_only or comparison.right_only or comparison.common_funny:
+        return False
+    if any(
+        not filecmp.cmp(left / name, right / name, shallow=False)
+        for name in comparison.common_files
+    ):
+        return False
+    return all(
+        directories_match(left / name, right / name) for name in comparison.common_dirs
+    )
+
+
+def replace_output(stage: Path, output: Path) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    backup = output.parent / f".{output.name}.backup"
+    if backup.exists() or backup.is_symlink():
+        raise ValueError(
+            f"Refusing to replace plugin output while backup path already exists: {backup}"
+        )
+    if output.exists() and not output.is_dir():
+        raise ValueError(f"Plugin output must be a directory when it exists: {output}")
+    if output.exists():
+        os.replace(output, backup)
+    try:
+        os.replace(stage, output)
+    except BaseException:
+        if backup.exists():
+            os.replace(backup, output)
+        raise
+    if backup.exists():
+        shutil.rmtree(backup)
+
+
+def main() -> None:
+    args = parse_args()
+    output = args.output.expanduser().resolve()
+    if (
+        output == ROOT
+        or output == SOURCE_PLUGIN
+        or output in SOURCE_PLUGIN.parents
+        or SOURCE_PLUGIN in output.parents
+    ):
+        raise SystemExit("Plugin output must not replace the Buildroom source directory.")
+    with tempfile.TemporaryDirectory(prefix="buildroom-plugin-") as temporary:
+        stage = Path(temporary) / "buildroom"
+        try:
+            build(stage)
+        except ValueError as error:
+            raise SystemExit(str(error)) from error
+        if args.check:
+            if not output.is_dir() or not directories_match(stage, output):
+                raise SystemExit(
+                    f"Buildroom plugin bundle is missing or out of date: {output}. "
+                    "Run bin/build-codex-plugin --write."
+                )
+            print(f"Buildroom plugin bundle is current: {output}")
+            return
+        try:
+            replace_output(stage, output)
+        except ValueError as error:
+            raise SystemExit(str(error)) from error
+        print(f"Built Buildroom plugin bundle: {output}")
+
+
+if __name__ == "__main__":
+    main()

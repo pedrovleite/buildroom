@@ -5,12 +5,12 @@ title: Product Manager
 summary: Defines an approved, testable product requirement from evidence and intent.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/role, role/product-management]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/role, role/product-management]
+applies_to: [buildroom]
 depends_on: []
 related: [workflow.research-to-prd, workflow.prd-to-tech-spec]
 authority: product-scope-with-human-approval
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 

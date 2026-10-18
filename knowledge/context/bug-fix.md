@@ -20,4 +20,4 @@ This is a generated navigation pack. Read the canonical workflow first, then the
 ## Selection metadata
 - Catalog ID: `workflow.bug-fix`
 - Authority: `human-fix-approval`
-- Tags: `domain/product-os`, `artifact/workflow`, `workflow/bug-fix`, `risk/standard`, `risk/high-impact`
+- Tags: `domain/buildroom`, `artifact/workflow`, `workflow/bug-fix`, `risk/standard`, `risk/high-impact`

@@ -5,12 +5,12 @@ title: Bug Fix
 summary: Investigates and corrects a defect with explicit approval and independent verification.
 status: active
 audience: [human, agent]
-tags: [domain/product-os, artifact/workflow, workflow/bug-fix, risk/standard, risk/high-impact]
-applies_to: [product-os]
+tags: [domain/buildroom, artifact/workflow, workflow/bug-fix, risk/standard, risk/high-impact]
+applies_to: [buildroom]
 depends_on: [role.qa-reviewer, role.engineer]
 related: [workflow.no-bullshit-bug-fix]
 authority: human-fix-approval
-owner: product-os
+owner: buildroom
 updated: 2026-10-18
 ---
 

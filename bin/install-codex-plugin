@@ -1,0 +1,144 @@
+#!/usr/bin/env sh
+set -eu
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+codex_root=${CODEX_HOME:-"$HOME/.codex"}
+creator="$codex_root/skills/.system/plugin-creator/scripts/create_basic_plugin.py"
+validator="$codex_root/skills/.system/plugin-creator/scripts/validate_plugin.py"
+marketplace_reader="$codex_root/skills/.system/plugin-creator/scripts/read_marketplace_name.py"
+cachebuster="$codex_root/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py"
+plugin_parent=${BUILDROOM_PLUGIN_PARENT:-"$HOME/plugins"}
+destination="$plugin_parent/buildroom"
+legacy_destination="$plugin_parent/product-os"
+marketplace=${BUILDROOM_MARKETPLACE_PATH:-"$HOME/.agents/plugins/marketplace.json"}
+codex_command=${BUILDROOM_CODEX_COMMAND:-codex}
+dry_run=false
+
+usage() {
+  cat <<'EOF'
+Usage: bin/install-codex-plugin [--dry-run]
+
+Builds and validates Buildroom, then installs it from the personal Codex marketplace.
+EOF
+}
+
+case ${1:-} in
+  '') ;;
+  --dry-run) dry_run=true ;;
+  -h|--help) usage; exit 0 ;;
+  *) usage >&2; exit 2 ;;
+esac
+
+if [ "${PRODUCT_OS_PLUGIN_PARENT+x}" = x ] || [ "${PRODUCT_OS_MARKETPLACE_PATH+x}" = x ] || [ "${PRODUCT_OS_CODEX_COMMAND+x}" = x ]; then
+  printf 'PRODUCT_OS_* installer overrides are no longer supported. Rename them to BUILDROOM_* before retrying.\n' >&2
+  exit 2
+fi
+
+stage=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-plugin-install.XXXXXX")
+backup=''
+bootstrap=''
+legacy_backup=''
+cleanup() {
+  rm -rf "$stage"
+  if [ -n "$bootstrap" ] && [ -d "$bootstrap" ]; then
+    rm -rf "$bootstrap"
+  fi
+  if [ -n "$backup" ] && [ -e "$backup" ]; then
+    rm -rf "$backup"
+  fi
+  if [ -n "$legacy_backup" ] && [ -e "$legacy_backup" ]; then
+    rm -rf "$legacy_backup"
+  fi
+}
+trap cleanup EXIT HUP INT TERM
+
+"$root/bin/build-knowledge" --check
+"$root/bin/build-codex-plugin" --output "$stage/buildroom" --write
+if python3 -c 'import yaml' >/dev/null 2>&1; then
+  python3 "$validator" "$stage/buildroom"
+elif command -v uv >/dev/null 2>&1; then
+  uv run --with pyyaml python "$validator" "$stage/buildroom"
+else
+  printf 'Buildroom plugin validation needs PyYAML. Install it for Python or install uv and retry.\n' >&2
+  exit 1
+fi
+
+if [ "$dry_run" = true ]; then
+  printf 'dry-run: would install validated plugin at %s and use %s\n' "$destination" "$marketplace"
+  exit 0
+fi
+
+if [ ! -f "$creator" ] || [ ! -f "$validator" ] || [ ! -f "$marketplace_reader" ] || [ ! -f "$cachebuster" ]; then
+  printf 'Codex plugin-creator tooling was not found under %s. Run this from Codex Desktop.\n' "$codex_root" >&2
+  exit 1
+fi
+
+marketplace_has_buildroom() {
+  python3 - "$marketplace" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+plugins = payload.get("plugins", [])
+raise SystemExit(0 if any(isinstance(entry, dict) and entry.get("name") == "buildroom" for entry in plugins) else 1)
+PY
+}
+
+if [ ! -d "$destination" ]; then
+  python3 "$creator" buildroom --path "$plugin_parent" --with-skills --with-marketplace --marketplace-path "$marketplace"
+elif [ ! -f "$marketplace" ] || ! marketplace_has_buildroom; then
+  bootstrap=$(mktemp -d "${TMPDIR:-/tmp}/buildroom-marketplace.XXXXXX")
+  python3 "$creator" buildroom --path "$bootstrap" --with-skills --with-marketplace --marketplace-path "$marketplace"
+  rm -rf "$bootstrap"
+  bootstrap=''
+fi
+
+if [ ! -d "$destination" ]; then
+  printf 'Expected Buildroom plugin scaffold was not created at %s\n' "$destination" >&2
+  exit 1
+fi
+
+marketplace_name=$(python3 "$marketplace_reader" --marketplace-path "$marketplace")
+
+mkdir -p "$plugin_parent"
+backup="$plugin_parent/.buildroom.previous.$$"
+if [ -e "$backup" ]; then
+  printf 'Refusing to replace Buildroom while backup path already exists: %s\n' "$backup" >&2
+  exit 1
+fi
+legacy_backup="$plugin_parent/.product-os.previous.$$"
+if [ -d "$legacy_destination" ] && [ -e "$legacy_backup" ]; then
+  printf 'Refusing to retire Product OS while legacy backup path already exists: %s\n' "$legacy_backup" >&2
+  exit 1
+fi
+mv "$destination" "$backup"
+if ! mv "$stage/buildroom" "$destination"; then
+  mv "$backup" "$destination"
+  backup=''
+  exit 1
+fi
+
+python3 "$cachebuster" "$destination"
+if ! "$codex_command" plugin add "buildroom@$marketplace_name"; then
+  rm -rf "$destination"
+  mv "$backup" "$destination"
+  backup=''
+  printf 'Codex installation failed; restored the previous Buildroom plugin source.\n' >&2
+  exit 1
+fi
+rm -rf "$backup"
+backup=''
+
+if [ -d "$legacy_destination" ]; then
+  mv "$legacy_destination" "$legacy_backup"
+  if ! "$codex_command" plugin remove "product-os@$marketplace_name"; then
+    mv "$legacy_backup" "$legacy_destination"
+    legacy_backup=''
+    printf 'Buildroom was installed, but legacy Product OS removal failed; restored its source. Remove product-os@%s manually and retry.\n' "$marketplace_name" >&2
+    exit 1
+  fi
+  rm -rf "$legacy_backup"
+  legacy_backup=''
+fi
+printf 'Installed Buildroom for Codex. Start a new Codex thread to load its skills.\n'
