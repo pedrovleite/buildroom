@@ -1,7 +1,9 @@
-# Product OS name routing
+# Product OS discovery and name routing
 
 Keep this block alongside the target repository's existing instructions; it does not replace them.
 
-When the user names a Product OS agent or workflow (for example `Researcher`, `PM`, `QA`, `Architect`, `bug fix`, or `feature delivery`), resolve it through `product-os/registry.tsv` before asking for a Markdown path. Use `sh product-os/bin/product-os resolve "<name>"` when a link or exact prompt is useful. State the canonical name and link to the resolved file, then read that file before acting.
+Start Product OS discovery by reading `product-os/knowledge/catalog.yml`. Use its IDs, tags, status, authority, and relationships to choose a suitable role or workflow without scanning the full directory. A selected workflow's `context` field names its generated `product-os/knowledge/context/...` pack; read that pack in the listed order, then follow the canonical files it links.
 
-The registry is authoritative for Product OS names. An unknown or ambiguous name must not be guessed: run `sh product-os/bin/product-os list`, show the recognised names, and ask the user to choose. If the registry is unavailable or the user prefers not to choose a recognised name, do not block the task: ask for an explicit `product-os/...` Markdown path, then read that path before acting. Existing repository instructions, approval gates, and coding standards remain authoritative.
+When the user names a Product OS agent or workflow (for example `Researcher`, `PM`, `QA`, `Architect`, `bug fix`, or `feature delivery`), resolve the human-friendly name through `product-os/registry.tsv` before asking for a Markdown path. Use `sh product-os/bin/product-os resolve "<name>"` when a link or exact prompt is useful. State the canonical name and link to the resolved file, then read that file before acting.
+
+The catalog is authoritative for Product OS metadata; the registry is authoritative only for human-friendly names. An unknown or ambiguous name must not be guessed: run `sh product-os/bin/product-os list`, show the recognised names, and ask the user to choose. If the registry is unavailable or the user prefers not to choose a recognised name, do not block the task: ask for an explicit `product-os/...` Markdown path, then read that path before acting. Existing repository instructions, approval gates, and coding standards remain authoritative.

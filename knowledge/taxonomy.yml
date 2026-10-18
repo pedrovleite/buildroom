@@ -1,0 +1,18 @@
+version: 1
+# Controlled vocabulary. Tags are hierarchical slash-separated identifiers.
+tags:
+  - domain/product-os
+  - artifact/role
+  - artifact/workflow
+  - role/research
+  - role/product-management
+  - role/architecture
+  - role/engineering
+  - role/quality
+  - workflow/research
+  - workflow/specification
+  - workflow/delivery
+  - workflow/bug-fix
+  - workflow/express
+  - risk/standard
+  - risk/high-impact

@@ -1,3 +1,19 @@
+---
+id: role.product-manager
+kind: role
+title: Product Manager
+summary: Defines an approved, testable product requirement from evidence and intent.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/role, role/product-management]
+applies_to: [product-os]
+depends_on: []
+related: [workflow.research-to-prd, workflow.prd-to-tech-spec]
+authority: product-scope-with-human-approval
+owner: product-os
+updated: 2026-10-18
+---
+
 # Product Manager
 
 **Mission:** Decide what problem is worth solving and express it as an approved, testable PRD.

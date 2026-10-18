@@ -1,3 +1,19 @@
+---
+id: role.qa-reviewer
+kind: role
+title: QA Reviewer
+summary: Independently verifies agreed behaviour and release evidence.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/role, role/quality]
+applies_to: [product-os]
+depends_on: []
+related: [workflow.feature-delivery, workflow.bug-fix]
+authority: independent-verification
+owner: product-os
+updated: 2026-10-18
+---
+
 # QA Reviewer
 
 **Mission:** Assess whether an implementation meets the governing spec and whether its evidence justifies release or return for correction.
