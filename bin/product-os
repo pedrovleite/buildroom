@@ -1,0 +1,113 @@
+#!/usr/bin/env sh
+set -eu
+
+package_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+registry="$package_root/registry.tsv"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  sh product-os/bin/product-os list
+  sh product-os/bin/product-os resolve <agent-or-workflow-name>
+
+Resolve accepts canonical names and documented aliases, ignoring case.
+EOF
+}
+
+normalise() {
+  printf '%s' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | tr -s '[:space:]' ' ' \
+    | sed 's/^ //; s/ $//'
+}
+
+list_entries() {
+  awk -F '\t' '
+    NR == 1 { next }
+    { printf "%s: %s → product-os/%s\n", $1, $2, $4 }
+  ' "$registry"
+}
+
+resolve() {
+  requested=$(normalise "$*")
+  if [ -z "$requested" ]; then
+    echo 'A name is required. Use `list` to see recognised names.' >&2
+    exit 2
+  fi
+
+  matches=$(awk -F '\t' -v requested="$requested" '
+    NR == 1 { next }
+    {
+      matches_row = (tolower($2) == requested)
+      aliases = split($3, values, ",")
+      for (alias_index = 1; alias_index <= aliases; alias_index++) {
+        if (values[alias_index] == requested) {
+          matches_row = 1
+          break
+        }
+      }
+      if (matches_row) {
+        count++
+        if (count == 1) result_row = $0
+      }
+    }
+    END {
+      if (count == 1) {
+        print result_row
+        exit 0
+      }
+      if (count == 0) exit 1
+      exit 2
+    }
+  ' "$registry") || status=$?
+  status=${status:-0}
+
+  case "$status" in
+    0) ;;
+    1)
+      printf 'Unknown Product OS name: %s\nUse `sh product-os/bin/product-os list` to see recognised names, or continue by supplying an explicit `product-os/...` Markdown path.\n' "$requested" >&2
+      exit 1
+      ;;
+    *)
+      printf 'Ambiguous Product OS name: %s\nFix the duplicate aliases in product-os/registry.tsv.\n' "$requested" >&2
+      exit 2
+      ;;
+  esac
+
+  type=$(printf '%s\n' "$matches" | awk -F '\t' '{ print $1 }')
+  name=$(printf '%s\n' "$matches" | awk -F '\t' '{ print $2 }')
+  path=$(printf '%s\n' "$matches" | awk -F '\t' '{ print $4 }')
+  kind=$(printf '%s\n' "$matches" | awk -F '\t' '{ print $5 }')
+
+  printf 'Resolved: %s\nType: %s\nLink: [product-os/%s](product-os/%s)\n' "$name" "$type" "$path" "$path"
+  if [ "$kind" = 'role' ]; then
+    printf 'Codex: Act as the %s defined in `product-os/%s`; read it before continuing.\n' "$name" "$path"
+  else
+    printf 'Codex: Follow the %s workflow in `product-os/%s`; read it before continuing.\n' "$name" "$path"
+  fi
+}
+
+if [ ! -f "$registry" ]; then
+  printf 'Missing Product OS registry: %s\nContinue by supplying an explicit `product-os/...` Markdown path.\n' "$registry" >&2
+  exit 2
+fi
+
+command=${1:-}
+case "$command" in
+  list)
+    shift
+    [ "$#" -eq 0 ] || { usage >&2; exit 2; }
+    list_entries
+    ;;
+  resolve)
+    shift
+    resolve "$@"
+    ;;
+  ''|help|--help|-h)
+    usage
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac

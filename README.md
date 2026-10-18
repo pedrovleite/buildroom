@@ -1,0 +1,75 @@
+# Product OS for Codex
+
+`product-os` is a portable, file-first operating system for moving work from an idea or bug report to an approved, verified change. It is designed for a single ChatGPT/Codex subscription: a human starts a role in Codex, reviews its output, and explicitly approves each consequential hand-off.
+
+## What it contains
+
+- Five role cards in `agents/`.
+- Five workflows in `workflows/`.
+- Reusable artefact, hand-off, state, and memory templates in `templates/`.
+- A memory contract in `memory/`.
+
+The durable files, not prior chat messages, are the source of truth. Every workflow run has one `workflow-state.md`; every role-to-role transfer creates a `handoff-<from>-to-<to>.md`.
+
+## Use in this repository
+
+1. Choose a workflow from `workflows/` and create a run folder under `product/active/<work-id>/`.
+2. Copy `templates/workflow-state.md` to that folder and complete it before asking Codex to act.
+3. Resolve a role or workflow by name, then give Codex the run-folder path. For example, run `sh product-os/bin/product-os resolve Researcher` or `sh product-os/bin/product-os resolve 'bug fix'`. The response contains the canonical Markdown link and a ready-to-use Codex instruction. You may still name the role card and workflow file directly.
+4. At each role transition, copy `templates/handoff.md`, link the produced artefacts, and change the state owner. A recipient must reject an incomplete hand-off instead of guessing.
+5. Record material decisions in `product/memory/decision-log.md` and relationships in `product/memory/index.md`.
+
+## Choose the right route
+
+- **Light:** local, low-risk work with clear evidence. Keep the state and verification, but skip conditional discovery, release, and incident stages.
+- **Standard:** the default for product work and non-trivial bugs. Use the full research/design or bug investigation path.
+- **High-impact:** use when data, privacy/security, production, release, migration, external contracts, or broad customer impact is involved. Resolve the named risk and obtain the human gate before the consequential action.
+- **No-Bullshit Bug Fix:** use `no-bullshit-bug-fix.md` only for a known, local, reversible correction with a clear regression check. Starting it is your approval to implement. It never deploys, alters data, handles security/privacy, changes an external contract, or covers unclear/broad-impact defects; any such condition routes immediately to `bug-fix.md` and, when required, its incident branch.
+
+Every route records classification, owner, entry/exit criteria, decision authority, evidence, pause/resume condition, next action, and close-out. Release readiness, production enablement, monitoring, and postmortems are conditional stages: record `not applicable` and why when they are outside a run's scope.
+
+## Install in another project
+
+Copy the `product-os/` directory into the target repository. Then create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
+
+For name-first use in Codex, merge `product-os/codex/AGENTS.md.snippet` into the target repository's existing `AGENTS.md`. It tells Codex to resolve names through `registry.tsv` before asking you for a file path, while leaving the repository's own coding instructions in charge. This is routing guidance, not native slash commands or background agents.
+
+## Name registry
+
+`registry.tsv` is the single mapping between human-friendly names and Product OS files. It includes the five roles and five workflows, with English, Portuguese, and short aliases. Inspect available entries with:
+
+```sh
+sh product-os/bin/product-os list
+```
+
+Resolve a name with:
+
+```sh
+sh product-os/bin/product-os resolve PM
+sh product-os/bin/product-os resolve 'bug fix'
+sh product-os/bin/product-os resolve 'no bullshit bug fix'
+```
+
+Resolution is case-insensitive and deterministic. Unknown names fail with the valid-name command instead of selecting a near match; the user can still continue by naming an explicit `product-os/...` Markdown path.
+
+For a future BMad distribution, package these role cards and workflows as a custom module. The workflow artefacts remain valid whether invoked from BMad, Paperclip, or a direct Codex chat.
+
+## Operating rules
+
+- A role may only write the artefacts owned by its current workflow stage.
+- Every claim from research must cite a source in the research note.
+- Every implementation stage must link to acceptance criteria and verification evidence.
+- The human approves PRDs, technical designs, and production-affecting actions.
+- No workflow assumes a background runner, external model API, or graph database.
+
+## Memory now and later
+
+The file-backed memory index is required. A graph backend such as Graphiti is optional: it may ingest IDs, links, timestamps, and decisions from these Markdown files later, but it must never become the only record of a workflow.
+
+## Verify the package
+
+Run `sh product-os/tests/verify.sh` from the repository root. It checks that the workflow, communication, portability, and file-memory contracts are all present.
+
+## License
+
+MIT. See `LICENSE`.

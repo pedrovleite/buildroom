@@ -1,0 +1,10 @@
+.DS_Store
+
+# Editor and operating-system metadata
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local Product OS runs belong to the host project, not this reusable package.
+product/active/

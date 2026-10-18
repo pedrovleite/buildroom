@@ -1,0 +1,11 @@
+type	canonical_name	aliases	path	invocation_kind
+agent	Researcher	pesquisador,research	agents/researcher.md	role
+agent	Product Manager	pm,gestor de produto,product	agents/product-manager.md	role
+agent	Architect	arquiteto,arquitecto	agents/architect.md	role
+agent	Engineer	engenheiro,developer,dev	agents/engineer.md	role
+agent	QA Reviewer	qa,tester,quality reviewer,qualidade	agents/qa-reviewer.md	role
+workflow	Research to PRD	research-prd,pesquisa para prd	workflows/research-to-prd.md	workflow
+workflow	PRD to Technical Spec	prd-to-tech-spec,prd para especificacao tecnica	workflows/prd-to-tech-spec.md	workflow
+workflow	Feature Delivery	feature,entrega de feature	workflows/feature-delivery.md	workflow
+workflow	Bug Fix	bug-fix,fix bug,correcao de bug,correção de bug	workflows/bug-fix.md	workflow
+workflow	No-Bullshit Bug Fix	no-bullshit-bug-fix,no bullshit bug fix,correcao rapida,correção rápida,fix rapido,fix rápido	workflows/no-bullshit-bug-fix.md	workflow
