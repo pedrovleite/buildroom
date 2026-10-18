@@ -8,3 +8,7 @@
 
 # Local Product OS runs belong to the host project, not this reusable package.
 product/active/
+
+# Reproducible local documentation inputs and static output.
+.product-os-docs/
+.product-os-site/

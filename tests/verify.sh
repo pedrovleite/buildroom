@@ -22,7 +22,8 @@ require_file() {
 for file in \
   README.md \
   registry.tsv bin/product-os codex/AGENTS.md.snippet \
-  bin/build-knowledge knowledge/taxonomy.yml knowledge/schema.yml knowledge/README.md knowledge/catalog.yml \
+  bin/build-knowledge bin/build-docs mkdocs.yml requirements-docs.txt docs/public-content.yml .github/workflows/docs.yml \
+  knowledge/taxonomy.yml knowledge/taxonomy.md knowledge/schema.yml knowledge/README.md knowledge/catalog.yml knowledge/catalog.md \
   agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/qa-reviewer.md \
   workflows/research-to-prd.md workflows/prd-to-tech-spec.md workflows/feature-delivery.md workflows/bug-fix.md workflows/no-bullshit-bug-fix.md \
   templates/workflow-state.md templates/handoff.md templates/memory-index.md \
@@ -38,6 +39,7 @@ for file in \
 done
 
 test -x "$root/bin/build-knowledge"
+test -x "$root/bin/build-docs"
 "$root/bin/build-knowledge" --check
 require_text knowledge/catalog.yml 'workflow.bug-fix'
 require_text knowledge/catalog.yml 'role.engineer'
@@ -45,6 +47,31 @@ require_text knowledge/catalog.yml 'workflow.no-bullshit-bug-fix'
 require_text knowledge/catalog.yml 'context: "knowledge/context/bug-fix.md"'
 require_text codex/AGENTS.md.snippet 'knowledge/catalog.yml'
 require_text codex/AGENTS.md.snippet 'context` field'
+require_text knowledge/catalog.md '# Product OS catalog'
+require_text knowledge/catalog.md 'No-Bullshit Bug Fix'
+require_text knowledge/catalog.md 'open generated pack'
+require_text knowledge/taxonomy.md '# Product OS taxonomy'
+require_text docs/public-content.yml 'workflows/no-bullshit-bug-fix.md'
+require_text mkdocs.yml 'name: material'
+require_text mkdocs.yml 'Context packs:'
+require_text mkdocs.yml 'PRODUCT_OS_SITE_URL'
+require_text mkdocs.yml 'http://localhost:8000/'
+require_text mkdocs.yml 'PRODUCT_OS_REPOSITORY_URL'
+require_text mkdocs.yml 'https://example.invalid/product-os'
+require_text requirements-docs.txt 'mkdocs-material==9.*'
+require_text .github/workflows/docs.yml 'branches: [main]'
+require_text .github/workflows/docs.yml 'pages: read'
+require_text .github/workflows/docs.yml 'bin/build-knowledge --check'
+require_text .github/workflows/docs.yml 'bin/build-docs --write'
+require_text .github/workflows/docs.yml 'PRODUCT_OS_SITE_URL: ${{ steps.pages.outputs.base_url }}'
+require_text .github/workflows/docs.yml 'if: github.ref == format('
+require_text .github/workflows/docs.yml 'for excluded in templates memory tests docs bin .github registry.tsv knowledge/catalog.yml; do'
+require_text .github/workflows/docs.yml 'path: .product-os-site'
+require_text .github/workflows/docs.yml 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1'
+require_text .github/workflows/docs.yml 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0'
+require_text .github/workflows/docs.yml 'actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5'
+require_text .github/workflows/docs.yml 'actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4'
+require_text .github/workflows/docs.yml 'actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4'
 
 require_in_order() {
   file=$1
@@ -84,7 +111,12 @@ tmp_quoted=$(mktemp -d "${TMPDIR:-/tmp}/product-os-quoted.XXXXXX")
 tmp_scalar=$(mktemp -d "${TMPDIR:-/tmp}/product-os-scalar.XXXXXX")
 tmp_dependency=$(mktemp -d "${TMPDIR:-/tmp}/product-os-dependency.XXXXXX")
 tmp_collision=$(mktemp -d "${TMPDIR:-/tmp}/product-os-collision.XXXXXX")
-trap 'rm -rf "$tmp_tag" "$tmp_relation" "$tmp_stale" "$tmp_write" "$tmp_self" "$tmp_kind" "$tmp_status" "$tmp_orphan" "$tmp_nested" "$tmp_quoted" "$tmp_scalar" "$tmp_dependency" "$tmp_collision"' EXIT HUP INT TERM
+tmp_docs=$(mktemp -d "${TMPDIR:-/tmp}/product-os-docs.XXXXXX")
+tmp_docs_invalid=$(mktemp -d "${TMPDIR:-/tmp}/product-os-docs-invalid.XXXXXX")
+tmp_taxonomy=$(mktemp -d "${TMPDIR:-/tmp}/product-os-taxonomy.XXXXXX")
+tmp_markdown=$(mktemp -d "${TMPDIR:-/tmp}/product-os-markdown.XXXXXX")
+tmp_docs_source_link=$(mktemp -d "${TMPDIR:-/tmp}/product-os-docs-source-link.XXXXXX")
+trap 'rm -rf "$tmp_tag" "$tmp_relation" "$tmp_stale" "$tmp_write" "$tmp_self" "$tmp_kind" "$tmp_status" "$tmp_orphan" "$tmp_nested" "$tmp_quoted" "$tmp_scalar" "$tmp_dependency" "$tmp_collision" "$tmp_docs" "$tmp_docs_invalid" "$tmp_taxonomy" "$tmp_markdown" "$tmp_docs_source_link"' EXIT HUP INT TERM
 
 expect_knowledge_error() {
   fixture=$1
@@ -168,6 +200,90 @@ cp "$tmp_collision/workflows/bug-fix.md" "$tmp_collision/workflows/nested/bug-fi
 awk 'BEGIN { changed = 0 } { if (!changed && /^id: workflow.bug-fix$/) { sub("workflow.bug-fix", "workflow.nested-bug-fix"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_collision/workflows/nested/bug-fix.md" > "$tmp_collision/nested-bug-fix.md" && mv "$tmp_collision/nested-bug-fix.md" "$tmp_collision/workflows/nested/bug-fix.md"
 expect_knowledge_error "$tmp_collision" 'duplicate context-pack output: knowledge/context/bug-fix.md'
+
+make_knowledge_fixture "$tmp_taxonomy"
+awk 'BEGIN { changed = 0 } { if (!changed && /domain\/product-os/) { sub("domain/product-os", "domain|invalid"); changed = 1 } print } END { if (!changed) exit 2 }' \
+  "$tmp_taxonomy/knowledge/taxonomy.yml" > "$tmp_taxonomy/taxonomy.yml" && mv "$tmp_taxonomy/taxonomy.yml" "$tmp_taxonomy/knowledge/taxonomy.yml"
+expect_knowledge_error "$tmp_taxonomy" "invalid taxonomy tag 'domain|invalid'"
+
+make_knowledge_fixture "$tmp_markdown"
+mv "$tmp_markdown/agents/researcher.md" "$tmp_markdown/agents/researcher (guide).md"
+awk 'BEGIN { changed = 0 } { if (!changed && /^title: Researcher$/) { sub("Researcher", "Researcher [guide]"); changed = 1 } print } END { if (!changed) exit 2 }' \
+  "$tmp_markdown/agents/researcher (guide).md" > "$tmp_markdown/researcher.md" && mv "$tmp_markdown/researcher.md" "$tmp_markdown/agents/researcher (guide).md"
+"$root/bin/build-knowledge" --root "$tmp_markdown" --write >/dev/null
+grep -Fq '[Researcher \[guide\]](<../agents/researcher%20%28guide%29.md>)' "$tmp_markdown/knowledge/catalog.md"
+
+# Documentation source: a generated, explicit allowlist is the only publication boundary.
+make_docs_fixture() {
+  destination=$1
+  cp -R "$root/agents" "$root/workflows" "$root/knowledge" "$root/docs" "$destination/"
+  cp "$root/README.md" "$destination/"
+  mkdir -p "$destination/templates" "$destination/memory" "$destination/tests"
+  printf '# private template\n' > "$destination/templates/private-template.md"
+  printf '# private memory\n' > "$destination/memory/private-memory.md"
+  printf '# private test\n' > "$destination/tests/private-test.md"
+}
+
+make_docs_fixture "$tmp_docs"
+test -f "$tmp_docs/templates/private-template.md"
+test -f "$tmp_docs/memory/private-memory.md"
+test -f "$tmp_docs/tests/private-test.md"
+"$root/bin/build-docs" --root "$tmp_docs" --write >/dev/null
+"$root/bin/build-docs" --root "$tmp_docs" --check >/dev/null
+test -f "$tmp_docs/.product-os-docs/index.md"
+test -f "$tmp_docs/.product-os-docs/workflows/no-bullshit-bug-fix.md"
+test -f "$tmp_docs/.product-os-docs/knowledge/context/no-bullshit-bug-fix.md"
+test ! -e "$tmp_docs/.product-os-docs/templates"
+test ! -e "$tmp_docs/.product-os-docs/memory"
+test ! -e "$tmp_docs/.product-os-docs/tests"
+test ! -e "$tmp_docs/.product-os-docs/templates/private-template.md"
+test ! -e "$tmp_docs/.product-os-docs/memory/private-memory.md"
+test ! -e "$tmp_docs/.product-os-docs/tests/private-test.md"
+printf '# private by default\n' > "$tmp_docs/unlisted.md"
+ln -s ../unlisted.md "$tmp_docs/.product-os-docs/unlisted-link.md"
+if "$root/bin/build-docs" --root "$tmp_docs" --check >"$tmp_docs/output" 2>&1; then
+  echo 'Documentation checks must reject symbolic links in the staging directory' >&2
+  exit 1
+fi
+grep -Fq 'documentation output must not contain symbolic links' "$tmp_docs/output"
+"$root/bin/build-docs" --root "$tmp_docs" --write >/dev/null
+test ! -e "$tmp_docs/.product-os-docs/unlisted.md"
+
+if "$root/bin/build-docs" --root "$tmp_docs" --output "$tmp_docs/agents" --write >"$tmp_docs/output" 2>&1; then
+  echo 'Documentation assembly must reject canonical source directories as output' >&2
+  exit 1
+fi
+grep -Fq 'dedicated .product-os-docs staging directory' "$tmp_docs/output"
+test -f "$tmp_docs/agents/researcher.md"
+
+make_docs_fixture "$tmp_docs_source_link"
+mv "$tmp_docs_source_link/README.md" "$tmp_docs_source_link/README-source.md"
+ln -s README-source.md "$tmp_docs_source_link/README.md"
+if "$root/bin/build-docs" --root "$tmp_docs_source_link" --write >"$tmp_docs_source_link/output" 2>&1; then
+  echo 'Documentation assembly must reject allowlisted source symbolic links' >&2
+  exit 1
+fi
+grep -Fq 'allowlisted source must be a regular file' "$tmp_docs_source_link/output"
+test ! -e "$tmp_docs_source_link/.product-os-docs"
+
+make_docs_fixture "$tmp_docs_invalid"
+awk 'BEGIN { changed = 0 } { if (!changed && /domain\/product-os/) { sub("domain/product-os", "invalid/tag"); changed = 1 } print } END { if (!changed) exit 2 }' \
+  "$tmp_docs_invalid/agents/researcher.md" > "$tmp_docs_invalid/researcher.md" && mv "$tmp_docs_invalid/researcher.md" "$tmp_docs_invalid/agents/researcher.md"
+if "$root/bin/build-docs" --root "$tmp_docs_invalid" --write >"$tmp_docs_invalid/output" 2>&1; then
+  echo 'Documentation assembly must fail when knowledge metadata is invalid' >&2
+  exit 1
+fi
+grep -Fq 'knowledge validation failed; documentation source was not assembled' "$tmp_docs_invalid/output"
+test ! -e "$tmp_docs_invalid/.product-os-docs"
+
+while IFS= read -r destination; do
+  grep -Fq -- ": $destination" "$root/mkdocs.yml" || {
+    echo "Allowlisted destination is missing from navigation: $destination" >&2
+    exit 1
+  }
+done <<EOF
+$(awk '/^    destination: / { print $2 }' "$root/docs/public-content.yml")
+EOF
 
 # New product idea: research, PRD, and an approval gate.
 require_text workflows/research-to-prd.md 'research-note.md'

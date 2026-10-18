@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+"""Assemble the explicitly allowlisted Product OS MkDocs source tree."""
+
+from __future__ import annotations
+
+import argparse
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+class DocsError(Exception):
+    pass
+
+
+def read_allowlist(path: Path) -> list[tuple[str, str]]:
+    """Read the intentionally small YAML subset used by public-content.yml."""
+    version: str | None = None
+    files: list[tuple[str, str | None]] | None = None
+    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = raw.split("#", 1)[0].rstrip()
+        if not line:
+            continue
+        if line.startswith("version:"):
+            if version is not None:
+                raise DocsError(f"{path}:{number}: duplicate version")
+            version = line.split(":", 1)[1].strip()
+        elif line == "public_files:":
+            if files is not None:
+                raise DocsError(f"{path}:{number}: duplicate public_files")
+            files = []
+        elif line.startswith("  - source: ") and files is not None:
+            files.append((line.split(":", 1)[1].strip(), None))
+        elif line.startswith("    destination: ") and files:
+            source, destination = files[-1]
+            if destination is not None:
+                raise DocsError(f"{path}:{number}: duplicate destination")
+            files[-1] = (source, line.split(":", 1)[1].strip())
+        else:
+            raise DocsError(f"{path}:{number}: unsupported allowlist syntax")
+    if version != "1" or files is None or not files:
+        raise DocsError(f"{path}: expected version: 1 and a non-empty public_files list")
+    if any(destination is None for _, destination in files):
+        raise DocsError(f"{path}: every public file needs a destination")
+    resolved_files = [(source, str(destination)) for source, destination in files]
+    if len(resolved_files) != len(set(resolved_files)):
+        raise DocsError(f"{path}: public_files must not contain duplicate mappings")
+    return resolved_files
+
+
+def safe_relative_path(value: str, manifest: Path) -> Path:
+    path = Path(value)
+    if not value or path.is_absolute() or ".." in path.parts or path.suffix != ".md":
+        raise DocsError(f"{manifest}: invalid public Markdown path {value!r}")
+    return path
+
+
+def build_home() -> str:
+    return """# Product OS
+
+Product OS is a file-first operating system for moving work from an idea or bug report to an approved, verified change.
+
+This public site is built from an explicit allowlist. The private repository contains additional templates, tests, memory guidance, and runtime material that are intentionally not published here.
+
+## Start here
+
+- [Operating model](operating-model.md)
+- [Discovery contract](knowledge/README.md)
+- [Catalog](knowledge/catalog.md)
+- [Taxonomy](knowledge/taxonomy.md)
+
+## Use a workflow
+
+Choose a workflow in the [catalog](knowledge/catalog.md), then read its generated context pack for the canonical workflow and role-card order.
+"""
+
+
+def expected_files(root: Path) -> dict[Path, str]:
+    manifest = root / "docs/public-content.yml"
+    files = read_allowlist(manifest)
+    expected = {Path("index.md"): build_home()}
+    for source_value, destination_value in files:
+        source_relative = safe_relative_path(source_value, manifest)
+        destination_relative = safe_relative_path(destination_value, manifest)
+        if destination_relative in expected:
+            raise DocsError(f"{manifest}: duplicate public destination: {destination_relative}")
+        source = root / source_relative
+        try:
+            resolved = source.resolve(strict=True)
+        except FileNotFoundError as exc:
+            raise DocsError(f"{manifest}: allowlisted source is missing: {source_relative}") from exc
+        if not resolved.is_relative_to(root.resolve()) or not source.is_file() or source.is_symlink():
+            raise DocsError(f"{manifest}: allowlisted source must be a regular file inside Product OS: {source_relative}")
+        expected[destination_relative] = source.read_text(encoding="utf-8")
+    return expected
+
+
+def validate_output(root: Path, output: Path) -> Path:
+    resolved_root = root.resolve()
+    resolved_output = output.resolve()
+    expected_output = resolved_root / ".product-os-docs"
+    if resolved_output != expected_output:
+        raise DocsError("documentation output must be the dedicated .product-os-docs staging directory")
+    return resolved_output
+
+
+def actual_files(output: Path) -> dict[Path, str]:
+    if not output.exists():
+        return {}
+    if output.is_symlink() or not output.is_dir():
+        raise DocsError(f"documentation output is not a directory: {output}")
+    found: dict[Path, str] = {}
+    for path in output.rglob("*"):
+        if path.is_symlink():
+            raise DocsError(f"documentation output must not contain symbolic links: {path.relative_to(output)}")
+        if not path.is_file():
+            continue
+        found[path.relative_to(output)] = path.read_text(encoding="utf-8")
+    return found
+
+
+def check_knowledge(root: Path) -> None:
+    command = [str(Path(__file__).with_name("build-knowledge")), "--root", str(root), "--check"]
+    result = subprocess.run(command, text=True, capture_output=True, check=False)
+    if result.returncode:
+        sys.stderr.write(result.stderr)
+        raise DocsError("knowledge validation failed; documentation source was not assembled")
+
+
+def write_output(output: Path, expected: dict[Path, str]) -> None:
+    if output.exists():
+        shutil.rmtree(output)
+    output.mkdir(parents=True)
+    for relative, content in expected.items():
+        destination = output / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(content, encoding="utf-8")
+
+
+def run(root: Path, output: Path, mode: str) -> int:
+    try:
+        root = root.resolve()
+        output = validate_output(root, output)
+        check_knowledge(root)
+        expected = expected_files(root)
+        if mode == "check":
+            actual = actual_files(output)
+            if actual != expected:
+                expected_paths = set(expected)
+                actual_paths = set(actual)
+                for path in sorted(expected_paths - actual_paths):
+                    print(f"Missing staged documentation file: {path}", file=sys.stderr)
+                for path in sorted(actual_paths - expected_paths):
+                    print(f"Unexpected staged documentation file: {path}", file=sys.stderr)
+                for path in sorted(expected_paths & actual_paths):
+                    if expected[path] != actual[path]:
+                        print(f"Out of date staged documentation file: {path}", file=sys.stderr)
+                print("Run bin/build-docs --write to rebuild the curated documentation source.", file=sys.stderr)
+                return 1
+            print("Product OS documentation source is current and allowlisted.")
+            return 0
+        write_output(output, expected)
+        print(f"Built curated documentation source in {output.relative_to(root)}")
+        return 0
+    except (DocsError, OSError, UnicodeError) as exc:
+        print(f"Product OS documentation build failed: {exc}", file=sys.stderr)
+        return 1
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--write", action="store_true", help="assemble the allowlisted documentation source")
+    mode.add_argument("--check", action="store_true", help="verify the staged documentation source is current")
+    parser.add_argument("--root", type=Path, help="Product OS root; defaults to this script's parent")
+    parser.add_argument("--output", type=Path, help="staging directory; defaults to .product-os-docs")
+    args = parser.parse_args()
+    root = (args.root or Path(__file__).resolve().parent.parent).resolve()
+    output = args.output or root / ".product-os-docs"
+    return run(root, output, "write" if args.write else "check")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

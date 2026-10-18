@@ -47,7 +47,25 @@ product-os/bin/build-knowledge --write
 product-os/bin/build-knowledge --check
 ```
 
-The builder rejects duplicate or malformed IDs, unknown tags, invalid kinds/statuses, self-references, and broken `depends_on` or `related` links. This metadata layer is Git-native and private by default; a MkDocs or GitHub Pages presentation layer can be added later without changing the source contract.
+The builder rejects duplicate or malformed IDs, unknown tags, invalid kinds/statuses, self-references, and broken `depends_on` or `related` links. It also generates `knowledge/catalog.md` and `knowledge/taxonomy.md` for the curated documentation site. This metadata layer is Git-native and private by default; only the separate allowlist below is eligible for publication.
+
+## Curated documentation site
+
+The public documentation site is a presentation layer, not another source of truth. `docs/public-content.yml` is the explicit allowlist: only its Markdown files, plus a generated landing page, can enter `.product-os-docs/`. Templates, memory, tests, local runs, and any new files remain private by default.
+
+After changing source material, build and verify the staged documentation locally:
+
+```sh
+product-os/bin/build-knowledge --write
+product-os/bin/build-docs --write
+product-os/bin/build-docs --check
+python3 -m pip install --requirement product-os/requirements-docs.txt
+python3 -m mkdocs build --strict --config-file product-os/mkdocs.yml
+```
+
+The static result is written to `.product-os-site/`; both directories are ignored. For a local preview after the first build, run `python3 -m mkdocs serve --config-file product-os/mkdocs.yml`.
+
+GitHub Actions publishes only `.product-os-site/` after a push to `main`, using the Pages artifact flow. Before the first deployment, enable **GitHub Actions** as the GitHub Pages publishing source in the repository settings. The repository is private, but this Pages site is deliberately public, so add a file to `docs/public-content.yml` only after deciding it is safe to disclose.
 
 ## Name registry
 
@@ -83,7 +101,7 @@ The file-backed memory index is required. A graph backend such as Graphiti is op
 
 ## Verify the package
 
-Run `product-os/bin/build-knowledge --check` and `sh product-os/tests/verify.sh` from the repository root. They check the knowledge metadata, generated context packs, workflow, communication, portability, and file-memory contracts.
+Run `product-os/bin/build-knowledge --check`, `product-os/bin/build-docs --write`, `product-os/bin/build-docs --check`, and `sh product-os/tests/verify.sh` from the repository root. They check the knowledge metadata, generated discovery/context pages, public allowlist boundary, workflows, communication, portability, and file-memory contracts. Install `requirements-docs.txt` as shown above when also running the strict Material static-site build.
 
 ## License
 

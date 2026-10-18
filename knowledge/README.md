@@ -18,7 +18,7 @@ Tags must come from `taxonomy.yml`. Use slash-separated tags so broad and narrow
 
 ## Generated surfaces
 
-`catalog.yml` and every file in `context/` are generated. A workflow catalog entry exposes its precise `context` path. Read generated files freely, but never edit them by hand. Change source frontmatter or this contract, then run:
+`catalog.yml`, `catalog.md`, `taxonomy.md`, and every file in `context/` are generated. A workflow catalog entry exposes its precise `context` path; `catalog.md` is the human-readable discovery index used by the documentation site. Read generated files freely, but never edit them by hand. Change source frontmatter or this contract, then run:
 
 ```sh
 product-os/bin/build-knowledge --write
