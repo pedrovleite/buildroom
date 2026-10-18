@@ -23,6 +23,7 @@ TOOLKIT_ITEMS = (
     "memory",
     "registry.tsv",
     "bin/buildroom",
+    "scripts/run-operations.py",
     "codex/AGENTS.global-plugin.snippet",
 )
 
