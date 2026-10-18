@@ -28,6 +28,7 @@ nav:
   - Start here:
       - Overview: index.md
       - Operating model: operating-model.md
+      - Run operations: run-operations.md
   - Discovery:
       - Knowledge contract: knowledge/README.md
       - Catalog: knowledge/catalog.md
