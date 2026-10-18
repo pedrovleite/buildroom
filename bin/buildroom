@@ -3,14 +3,18 @@ set -eu
 
 package_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 registry="$package_root/registry.tsv"
+run_operations="$package_root/scripts/run-operations.py"
 
 usage() {
   cat <<'EOF'
 Usage:
   sh buildroom/bin/buildroom list
   sh buildroom/bin/buildroom resolve <agent-or-workflow-name>
+  sh buildroom/bin/buildroom start <workflow-name-or-id> <work-id> [--project <path>] [--approve-express]
+  sh buildroom/bin/buildroom check <work-id> [--project <path>]
 
 Resolve accepts canonical names and documented aliases, ignoring case.
+Start prepares exactly one new run; check reports structural readiness only.
 EOF
 }
 
@@ -102,6 +106,14 @@ case "$command" in
   resolve)
     shift
     resolve "$@"
+    ;;
+  start|check)
+    [ -f "$run_operations" ] || {
+      printf 'Missing Buildroom run-operations helper: %s\n' "$run_operations" >&2
+      exit 2
+    }
+    shift
+    exec python3 "$run_operations" --package-root "$package_root" "$command" "$@"
     ;;
   ''|help|--help|-h)
     usage

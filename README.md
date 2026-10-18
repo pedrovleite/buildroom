@@ -15,8 +15,8 @@ The durable files, not prior chat messages, are the source of truth. Every workf
 ## Use in this repository
 
 1. Read `knowledge/catalog.yml` to select a route by stable ID, tags, authority, and relationships. For a workflow, use its `context` field to open the generated pack in the listed order.
-2. Choose the canonical workflow from `workflows/` and create a run folder under `product/active/<work-id>/`.
-3. Copy `templates/workflow-state.md` to that folder and complete it before asking Codex to act.
+2. Start one explicit run with the canonical workflow and a work ID, for example `sh buildroom/bin/buildroom start feature WORK-101`. The command creates only `product/active/WORK-101/workflow-state.md` and prepares its first owner and next action.
+3. Inspect a run without changing it with `sh buildroom/bin/buildroom check WORK-101`. A check surfaces structural blockers and the correction needed; it never approves a gate, accepts a hand-off, or advances the workflow.
 4. Resolve a role or workflow by name when useful, then give Codex the run-folder path. For example, run `sh buildroom/bin/buildroom resolve Researcher` or `sh buildroom/bin/buildroom resolve 'bug fix'`. The response contains the canonical Markdown link and a ready-to-use Codex instruction. You may still name the role card and workflow file directly.
 5. At each role transition, copy `templates/handoff.md`, link the produced artefacts, and change the state owner. A recipient must reject an incomplete hand-off instead of guessing.
 6. Record material decisions in `product/memory/decision-log.md` and relationships in `product/memory/index.md`.
@@ -115,6 +115,18 @@ sh buildroom/bin/buildroom resolve 'no bullshit bug fix'
 ```
 
 Resolution is case-insensitive and deterministic. Unknown names fail with the valid-name command instead of selecting a near match; the user can still continue by naming an explicit `buildroom/...` Markdown path.
+
+## Run operations
+
+Run operations always target an initialized repository; pass `--project <path>` when it is not the current directory. Workflow names, aliases, and workflow IDs are accepted, but a work ID must be explicit:
+
+```sh
+sh buildroom/bin/buildroom start feature WORK-101 --project .
+sh buildroom/bin/buildroom check WORK-101 --project .
+sh buildroom/bin/buildroom start no-bullshit-bug-fix FIX-42 --approve-express --project .
+```
+
+`start` refuses unknown workflows, invalid IDs, existing runs, symbolic links, and uninitialized projects. The express route requires `--approve-express`; this records its narrow invocation approval but does not waive its eligibility or regression checks. `check` is read-only: `READY` and `WARNING` exit successfully, while each `BLOCKER` includes a next action and exits non-zero. It makes human approvals and hand-off acknowledgements visible but cannot satisfy them.
 
 For a future BMad distribution, package these role cards and workflows as a custom module. The workflow artefacts remain valid whether invoked from BMad, Paperclip, or a direct Codex chat.
 

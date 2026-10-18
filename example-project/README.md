@@ -17,7 +17,7 @@ product/
   archive/
 ```
 
-Copy templates from `buildroom/templates/`, replacing placeholder IDs. Keep `product/` under version control. The target project's `AGENTS.md` and coding standards remain authoritative for code changes.
+After initialization, start a run instead of manually copying the state template: `sh buildroom/bin/buildroom start <workflow-name-or-id> <work-id>`. Add `--project <path>` when needed, and use `--approve-express` only for an explicitly invoked No-Bullshit Bug Fix. `sh buildroom/bin/buildroom check <work-id>` is a read-only structural report; it reveals missing state, evidence, hand-offs, and visible approval requirements without satisfying any of those gates. Keep `product/` under version control. The target project's `AGENTS.md` and coding standards remain authoritative for code changes.
 
 The global plugin already lets a new Codex conversation recognise `Researcher`, `PM`, `QA`, and workflow names. The initializer inserts `codex/AGENTS.global-plugin.snippet` as a marked block so the repository explains where durable state belongs; it must not replace the host project's instructions.
 

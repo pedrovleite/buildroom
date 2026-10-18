@@ -23,7 +23,7 @@ for file in \
   README.md \
   registry.tsv bin/buildroom codex/AGENTS.md.snippet \
   codex/AGENTS.global-plugin.snippet bin/build-knowledge bin/build-docs bin/build-codex-plugin bin/install-codex-plugin mkdocs.yml requirements-docs.txt docs/public-content.yml .github/workflows/docs.yml \
-  plugins/buildroom/.codex-plugin/plugin.json plugins/buildroom/skills/buildroom/SKILL.md plugins/buildroom/skills/buildroom-init/SKILL.md plugins/buildroom/scripts/init-project.py tests/verify-codex-plugin.sh \
+  plugins/buildroom/.codex-plugin/plugin.json plugins/buildroom/skills/buildroom/SKILL.md plugins/buildroom/skills/buildroom-init/SKILL.md plugins/buildroom/scripts/init-project.py scripts/run-operations.py tests/verify-codex-plugin.sh tests/verify-run-operations.sh \
   knowledge/taxonomy.yml knowledge/taxonomy.md knowledge/schema.yml knowledge/README.md knowledge/catalog.yml knowledge/catalog.md \
   agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/qa-reviewer.md \
   workflows/research-to-prd.md workflows/prd-to-tech-spec.md workflows/feature-delivery.md workflows/bug-fix.md workflows/no-bullshit-bug-fix.md \
@@ -44,6 +44,7 @@ test -x "$root/bin/build-docs"
 test -x "$root/bin/build-codex-plugin"
 test -x "$root/bin/install-codex-plugin"
 test -x "$root/tests/verify-codex-plugin.sh"
+test -x "$root/tests/verify-run-operations.sh"
 "$root/bin/build-knowledge" --check
 "$root/bin/build-codex-plugin" --write
 "$root/bin/build-codex-plugin" --check
@@ -435,5 +436,7 @@ if unknown_output=$(sh "$root/bin/buildroom" resolve 'not an agent' 2>&1); then
   exit 1
 fi
 printf '%s\n' "$unknown_output" | grep -Fq 'explicit `buildroom/...` Markdown path'
+
+sh "$root/tests/verify-run-operations.sh"
 
 echo 'buildroom verification passed'
