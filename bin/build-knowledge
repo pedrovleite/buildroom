@@ -1,0 +1,358 @@
+#!/usr/bin/env python3
+"""Validate Product OS discovery metadata and render its agent-facing indexes."""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import re
+import sys
+from pathlib import Path
+
+
+ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
+LIST_FIELDS = {"audience", "tags", "applies_to", "depends_on", "related"}
+
+
+class KnowledgeError(Exception):
+    pass
+
+
+def scalar(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1]
+    return value
+
+
+def inline_list(value: str, source: Path, field: str) -> list[str]:
+    value = value.strip()
+    if not (value.startswith("[") and value.endswith("]")):
+        raise KnowledgeError(f"{source}: {field} must use an inline list, for example [human, agent]")
+    content = value[1:-1].strip()
+    if not content:
+        return []
+    values: list[str] = []
+    token: list[str] = []
+    quote: str | None = None
+    for character in content:
+        if quote:
+            if character == quote:
+                quote = None
+            else:
+                token.append(character)
+        elif character in {"'", '"'}:
+            quote = character
+        elif character == ",":
+            values.append(scalar("".join(token)))
+            token = []
+        else:
+            token.append(character)
+    if quote:
+        raise KnowledgeError(f"{source}: {field} has an unterminated quoted list item")
+    values.append(scalar("".join(token)))
+    if any(not item for item in values):
+        raise KnowledgeError(f"{source}: {field} contains an empty list item")
+    return values
+
+
+def read_simple_yaml(path: Path) -> dict[str, object]:
+    """Read this repository's deliberately small top-level YAML subset."""
+    result: dict[str, object] = {}
+    current_list: str | None = None
+    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = raw.split("#", 1)[0].rstrip()
+        if not line:
+            continue
+        if line.startswith("  - "):
+            if current_list is None:
+                raise KnowledgeError(f"{path}:{number}: list item has no key")
+            values = result[current_list]
+            assert isinstance(values, list)
+            values.append(scalar(line[4:]))
+            continue
+        if line.startswith(" ") or ":" not in line:
+            raise KnowledgeError(f"{path}:{number}: unsupported YAML syntax")
+        key, value = line.split(":", 1)
+        key, value = key.strip(), value.strip()
+        if not key or key in result:
+            raise KnowledgeError(f"{path}:{number}: invalid or duplicate key")
+        if value:
+            result[key] = scalar(value)
+            current_list = None
+        else:
+            result[key] = []
+            current_list = key
+    return result
+
+
+def read_frontmatter(path: Path) -> dict[str, object]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0] != "---":
+        raise KnowledgeError(f"{path}: missing opening frontmatter delimiter")
+    try:
+        end = lines.index("---", 1)
+    except ValueError as exc:
+        raise KnowledgeError(f"{path}: missing closing frontmatter delimiter") from exc
+
+    metadata: dict[str, object] = {}
+    for number, raw in enumerate(lines[1:end], start=2):
+        if not raw.strip():
+            continue
+        if raw.startswith((" ", "\t")) or ":" not in raw:
+            raise KnowledgeError(f"{path}:{number}: unsupported frontmatter syntax")
+        key, value = raw.split(":", 1)
+        key, value = key.strip(), value.strip()
+        if not key or key in metadata:
+            raise KnowledgeError(f"{path}:{number}: invalid or duplicate frontmatter key")
+        if key in LIST_FIELDS:
+            metadata[key] = inline_list(value, path, key)
+        else:
+            if value.startswith(("{", "[", "&", "*", "|", ">")):
+                raise KnowledgeError(f"{path}:{number}: unsupported scalar syntax")
+            metadata[key] = scalar(value)
+    return metadata
+
+
+def strings(value: object) -> list[str]:
+    return value if isinstance(value, list) else []
+
+
+def load_documents(root: Path, schema: dict[str, object]) -> list[dict[str, object]]:
+    documents: list[dict[str, object]] = []
+    source_roots = schema.get("source_roots", [])
+    if not isinstance(source_roots, list):
+        raise KnowledgeError("knowledge/schema.yml: source_roots must be a list")
+    for source_root in source_roots:
+        source_directory = root / str(source_root)
+        if not source_directory.is_dir():
+            raise KnowledgeError(f"missing source directory: {source_directory}")
+        for path in sorted(source_directory.rglob("*.md")):
+            documents.append(
+                {
+                    "path": path.relative_to(root).as_posix(),
+                    "metadata": read_frontmatter(path),
+                }
+            )
+    if not documents:
+        raise KnowledgeError("no knowledge source documents found")
+    return documents
+
+
+def validate(documents: list[dict[str, object]], schema: dict[str, object], taxonomy: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    required = strings(schema.get("required_fields"))
+    allowed_kinds = set(strings(schema.get("allowed_kinds")))
+    allowed_statuses = set(strings(schema.get("allowed_statuses")))
+    allowed_audiences = set(strings(schema.get("allowed_audiences")))
+    allowed_tags = set(strings(taxonomy.get("tags")))
+    by_id: dict[str, dict[str, object]] = {}
+
+    for document in documents:
+        path = str(document["path"])
+        metadata = document["metadata"]
+        assert isinstance(metadata, dict)
+        for field in required:
+            if field not in metadata or metadata[field] == "":
+                errors.append(f"{path}: missing required field {field}")
+            elif field in {"audience", "tags", "applies_to"} and metadata[field] == []:
+                errors.append(f"{path}: missing required field {field}")
+        identifier = metadata.get("id")
+        if not isinstance(identifier, str) or not ID_PATTERN.fullmatch(identifier):
+            errors.append(f"{path}: id must be a dotted lowercase identifier")
+        elif identifier in by_id:
+            errors.append(f"{path}: duplicate id {identifier} (also in {by_id[identifier]['path']})")
+        else:
+            by_id[identifier] = document
+
+        kind = metadata.get("kind")
+        if kind not in allowed_kinds:
+            errors.append(f"{path}: invalid kind {kind!r}")
+        status = metadata.get("status")
+        if status not in allowed_statuses:
+            errors.append(f"{path}: invalid status {status!r}")
+        for field in LIST_FIELDS:
+            if field in metadata and not isinstance(metadata[field], list):
+                errors.append(f"{path}: {field} must be an inline list")
+        audiences = strings(metadata.get("audience"))
+        if audiences and (not set(audiences) <= allowed_audiences):
+            errors.append(f"{path}: invalid audience value")
+        for tag in strings(metadata.get("tags")):
+            if tag not in allowed_tags:
+                errors.append(f"{path}: unknown tag {tag}")
+        updated = metadata.get("updated")
+        if isinstance(updated, str):
+            try:
+                dt.date.fromisoformat(updated)
+            except ValueError:
+                errors.append(f"{path}: updated must be an ISO date")
+        elif updated is not None:
+            errors.append(f"{path}: updated must be an ISO date")
+
+    for document in documents:
+        path = str(document["path"])
+        metadata = document["metadata"]
+        assert isinstance(metadata, dict)
+        identifier = metadata.get("id")
+        if not isinstance(identifier, str):
+            continue
+        for field in ("depends_on", "related"):
+            for target in strings(metadata.get(field)):
+                if target == identifier:
+                    errors.append(f"{path}: {field} must not reference itself ({identifier})")
+                elif target not in by_id:
+                    errors.append(f"{path}: {field} references missing id {target}")
+        dependencies = strings(metadata.get("depends_on"))
+        if metadata.get("kind") == "role" and dependencies:
+            errors.append(f"{path}: role documents must use an empty depends_on list")
+        if metadata.get("kind") == "workflow":
+            for target in dependencies:
+                target_document = by_id.get(target)
+                if target_document and target_document["metadata"].get("kind") != "role":
+                    errors.append(f"{path}: workflow depends_on must reference a role id ({target})")
+    return errors
+
+
+def quoted(value: object) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
+def context_path(document: dict[str, object]) -> str:
+    return (Path("knowledge/context") / Path(str(document["path"])).name).as_posix()
+
+
+def render_catalog(documents: list[dict[str, object]]) -> str:
+    lines = ["# Generated by bin/build-knowledge; edit source frontmatter, not this file.", "version: 1", "entries:"]
+    for document in sorted(documents, key=lambda item: str(item["metadata"]["id"])):
+        metadata = document["metadata"]
+        assert isinstance(metadata, dict)
+        lines.append(f"  - id: {quoted(metadata['id'])}")
+        for field in ("kind", "title", "summary", "status", "audience", "tags", "applies_to", "depends_on", "related", "authority", "owner", "updated"):
+            lines.append(f"    {field}: {quoted(metadata[field])}")
+        lines.append(f"    source: {quoted(document['path'])}")
+        if metadata["kind"] == "workflow":
+            lines.append(f"    context: {quoted(context_path(document))}")
+    return "\n".join(lines) + "\n"
+
+
+def render_context(document: dict[str, object], by_id: dict[str, dict[str, object]]) -> str:
+    metadata = document["metadata"]
+    assert isinstance(metadata, dict)
+    linked_roles = [
+        by_id[target]
+        for target in strings(metadata.get("depends_on"))
+        if by_id[target]["metadata"].get("kind") == "role"
+    ]
+    read_order = [str(document["path"])] + [str(role["path"]) for role in linked_roles]
+    lines = [
+        "---",
+        "generated: true",
+        f"workflow_id: {metadata['id']}",
+        f"source: {document['path']}",
+        "read_order:",
+    ]
+    lines.extend(f"  - {path}" for path in read_order)
+    lines.extend(
+        [
+            "---",
+            "",
+            f"# Context pack: {metadata['title']}",
+            "",
+            "This is a generated navigation pack. Read the canonical workflow first, then the linked role cards in order; do not treat this file as a copy of their operating instructions.",
+            "",
+            "## Read order",
+        ]
+    )
+    for index, path in enumerate(read_order, start=1):
+        lines.append(f"{index}. [Read `{path}`](../../{path})")
+    lines.extend(
+        [
+            "",
+            "## Selection metadata",
+            f"- Catalog ID: `{metadata['id']}`",
+            f"- Authority: `{metadata['authority']}`",
+            f"- Tags: {', '.join(f'`{tag}`' for tag in strings(metadata['tags']))}",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def expected_outputs(root: Path, documents: list[dict[str, object]]) -> dict[Path, str]:
+    by_id = {str(document["metadata"]["id"]): document for document in documents}
+    outputs = {root / "knowledge/catalog.yml": render_catalog(documents)}
+    for document in documents:
+        metadata = document["metadata"]
+        assert isinstance(metadata, dict)
+        if metadata["kind"] == "workflow":
+            output = root / context_path(document)
+            if output in outputs:
+                raise KnowledgeError(f"duplicate context-pack output: {output.relative_to(root)}")
+            outputs[output] = render_context(document, by_id)
+    return outputs
+
+
+def run(root: Path, mode: str) -> int:
+    try:
+        schema = read_simple_yaml(root / "knowledge/schema.yml")
+        taxonomy = read_simple_yaml(root / "knowledge/taxonomy.yml")
+        documents = load_documents(root, schema)
+        errors = validate(documents, schema, taxonomy)
+    except (KnowledgeError, OSError, UnicodeError) as exc:
+        errors = [str(exc)]
+        documents = []
+    if errors:
+        print("Product OS knowledge validation failed:", file=sys.stderr)
+        for error in errors:
+            print(f"- {error}", file=sys.stderr)
+        return 1
+
+    try:
+        outputs = expected_outputs(root, documents)
+    except (KnowledgeError, OSError, UnicodeError) as exc:
+        print("Product OS knowledge validation failed:", file=sys.stderr)
+        print(f"- {exc}", file=sys.stderr)
+        return 1
+    stale = [path for path, content in outputs.items() if not path.is_file() or path.read_text(encoding="utf-8") != content]
+    context_directory = root / "knowledge/context"
+    expected_context = {path for path in outputs if path.is_relative_to(context_directory)}
+    extras = set(context_directory.rglob("*.md")) - expected_context if context_directory.is_dir() else set()
+    if mode == "check":
+        if stale:
+            for path in stale:
+                print(f"Out of date: {path.relative_to(root)}", file=sys.stderr)
+        for path in sorted(extras):
+            print(f"Orphaned generated context pack: {path.relative_to(root)}", file=sys.stderr)
+        if stale or extras:
+            print("Run bin/build-knowledge --write to regenerate knowledge outputs.", file=sys.stderr)
+            return 1
+        print("Product OS knowledge is current.")
+        return 0
+
+    for path, content in outputs.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path in stale:
+            path.write_text(content, encoding="utf-8")
+            print(f"Updated {path.relative_to(root)}")
+    for path in sorted(extras):
+        path.unlink()
+        print(f"Removed {path.relative_to(root)}")
+    if not stale:
+        print("Product OS knowledge is already current.")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--write", action="store_true", help="render generated knowledge files")
+    mode.add_argument("--check", action="store_true", help="fail when generated knowledge files are stale")
+    parser.add_argument("--root", type=Path, help="Product OS root; defaults to this script's parent")
+    args = parser.parse_args()
+    root = (args.root or Path(__file__).resolve().parent.parent).resolve()
+    return run(root, "write" if args.write else "check")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

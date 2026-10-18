@@ -1,3 +1,19 @@
+---
+id: role.architect
+kind: role
+title: Architect
+summary: Converts approved requirements into bounded, testable technical specifications.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/role, role/architecture]
+applies_to: [product-os]
+depends_on: []
+related: [workflow.prd-to-tech-spec]
+authority: technical-design-with-human-approval
+owner: product-os
+updated: 2026-10-18
+---
+
 # Architect
 
 **Mission:** Convert an approved product requirement into a bounded technical specification that several implementation sessions can follow consistently.

@@ -1,3 +1,19 @@
+---
+id: workflow.prd-to-tech-spec
+kind: workflow
+title: PRD to Technical Spec
+summary: Converts an approved PRD into an implementation-ready technical design.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/workflow, workflow/specification, risk/standard, risk/high-impact]
+applies_to: [product-os]
+depends_on: [role.architect, role.engineer]
+related: [workflow.research-to-prd, workflow.feature-delivery]
+authority: human-design-approval
+owner: product-os
+updated: 2026-10-18
+---
+
 # PRD to Technical Spec
 
 1. Accept a human-approved PRD and classify technical impact in `workflow-state.md`: surface area, data, security/privacy, third-party, compatibility, and release exposure.

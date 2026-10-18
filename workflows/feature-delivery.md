@@ -1,3 +1,19 @@
+---
+id: workflow.feature-delivery
+kind: workflow
+title: Feature Delivery
+summary: Delivers an approved feature with independent verification and conditional release gates.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/workflow, workflow/delivery, risk/standard, risk/high-impact]
+applies_to: [product-os]
+depends_on: [role.engineer, role.qa-reviewer]
+related: [workflow.prd-to-tech-spec]
+authority: human-release-approval
+owner: product-os
+updated: 2026-10-18
+---
+
 # Feature Delivery
 
 1. Engineer accepts approved inputs only after a readiness check in `workflow-state.md`: repository instructions, environment access, entry criteria, immutable PRD/spec/decisions, and no unresolved blocker. Set state owner `Engineer`, status `implementing`.

@@ -8,16 +8,18 @@
 - Five workflows in `workflows/`.
 - Reusable artefact, hand-off, state, and memory templates in `templates/`.
 - A memory contract in `memory/`.
+- A validated knowledge catalog and workflow context packs in `knowledge/`.
 
 The durable files, not prior chat messages, are the source of truth. Every workflow run has one `workflow-state.md`; every role-to-role transfer creates a `handoff-<from>-to-<to>.md`.
 
 ## Use in this repository
 
-1. Choose a workflow from `workflows/` and create a run folder under `product/active/<work-id>/`.
-2. Copy `templates/workflow-state.md` to that folder and complete it before asking Codex to act.
-3. Resolve a role or workflow by name, then give Codex the run-folder path. For example, run `sh product-os/bin/product-os resolve Researcher` or `sh product-os/bin/product-os resolve 'bug fix'`. The response contains the canonical Markdown link and a ready-to-use Codex instruction. You may still name the role card and workflow file directly.
-4. At each role transition, copy `templates/handoff.md`, link the produced artefacts, and change the state owner. A recipient must reject an incomplete hand-off instead of guessing.
-5. Record material decisions in `product/memory/decision-log.md` and relationships in `product/memory/index.md`.
+1. Read `knowledge/catalog.yml` to select a route by stable ID, tags, authority, and relationships. For a workflow, use its `context` field to open the generated pack in the listed order.
+2. Choose the canonical workflow from `workflows/` and create a run folder under `product/active/<work-id>/`.
+3. Copy `templates/workflow-state.md` to that folder and complete it before asking Codex to act.
+4. Resolve a role or workflow by name when useful, then give Codex the run-folder path. For example, run `sh product-os/bin/product-os resolve Researcher` or `sh product-os/bin/product-os resolve 'bug fix'`. The response contains the canonical Markdown link and a ready-to-use Codex instruction. You may still name the role card and workflow file directly.
+5. At each role transition, copy `templates/handoff.md`, link the produced artefacts, and change the state owner. A recipient must reject an incomplete hand-off instead of guessing.
+6. Record material decisions in `product/memory/decision-log.md` and relationships in `product/memory/index.md`.
 
 ## Choose the right route
 
@@ -30,9 +32,22 @@ Every route records classification, owner, entry/exit criteria, decision authori
 
 ## Install in another project
 
-Copy the `product-os/` directory into the target repository. Then create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
+Copy the `product-os/` directory into the target repository. Then create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Product OS needs only Python 3 from the host standard installation to validate and regenerate its knowledge catalog. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
 
 For name-first use in Codex, merge `product-os/codex/AGENTS.md.snippet` into the target repository's existing `AGENTS.md`. It tells Codex to resolve names through `registry.tsv` before asking you for a file path, while leaving the repository's own coding instructions in charge. This is routing guidance, not native slash commands or background agents.
+
+## Knowledge catalog
+
+The canonical instructions stay in `agents/` and `workflows/`; their YAML frontmatter is validated against `knowledge/schema.yml` and the controlled vocabulary in `knowledge/taxonomy.yml`. `knowledge/catalog.yml` is the agent's first read; each workflow entry's `context` field points to its small generated navigation pack. Edit source frontmatter, never generated files.
+
+After changing metadata, run:
+
+```sh
+product-os/bin/build-knowledge --write
+product-os/bin/build-knowledge --check
+```
+
+The builder rejects duplicate or malformed IDs, unknown tags, invalid kinds/statuses, self-references, and broken `depends_on` or `related` links. This metadata layer is Git-native and private by default; a MkDocs or GitHub Pages presentation layer can be added later without changing the source contract.
 
 ## Name registry
 
@@ -68,7 +83,7 @@ The file-backed memory index is required. A graph backend such as Graphiti is op
 
 ## Verify the package
 
-Run `sh product-os/tests/verify.sh` from the repository root. It checks that the workflow, communication, portability, and file-memory contracts are all present.
+Run `product-os/bin/build-knowledge --check` and `sh product-os/tests/verify.sh` from the repository root. They check the knowledge metadata, generated context packs, workflow, communication, portability, and file-memory contracts.
 
 ## License
 

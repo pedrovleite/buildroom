@@ -1,3 +1,19 @@
+---
+id: workflow.no-bullshit-bug-fix
+kind: workflow
+title: No-Bullshit Bug Fix
+summary: Applies a pre-approved, local, reversible defect correction with a proven regression check.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/workflow, workflow/bug-fix, workflow/express]
+applies_to: [product-os]
+depends_on: [role.engineer]
+related: [workflow.bug-fix]
+authority: workflow-invocation-is-human-approval
+owner: product-os
+updated: 2026-10-18
+---
+
 # No-Bullshit Bug Fix
 
 Use this express route only when **every** eligibility check is true. Explicitly invoking this workflow is the human approval for the eligible correction.

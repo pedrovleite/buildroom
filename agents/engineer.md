@@ -1,3 +1,19 @@
+---
+id: role.engineer
+kind: role
+title: Engineer
+summary: Implements an approved scope and records reproducible verification evidence.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/role, role/engineering]
+applies_to: [product-os]
+depends_on: []
+related: [workflow.feature-delivery, workflow.bug-fix, workflow.no-bullshit-bug-fix]
+authority: approved-implementation
+owner: product-os
+updated: 2026-10-18
+---
+
 # Engineer
 
 **Mission:** Implement one approved technical specification or bug-fix plan and leave reproducible verification evidence.

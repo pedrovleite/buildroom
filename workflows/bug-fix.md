@@ -1,3 +1,19 @@
+---
+id: workflow.bug-fix
+kind: workflow
+title: Bug Fix
+summary: Investigates and corrects a defect with explicit approval and independent verification.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/workflow, workflow/bug-fix, risk/standard, risk/high-impact]
+applies_to: [product-os]
+depends_on: [role.qa-reviewer, role.engineer]
+related: [workflow.no-bullshit-bug-fix]
+authority: human-fix-approval
+owner: product-os
+updated: 2026-10-18
+---
+
 # Bug Fix
 
 1. Intake and classify the defect in `bug-investigation.md` and `workflow-state.md`: expected versus observed behaviour, environment/version, impact, severity, owner, route, evidence, and next action.

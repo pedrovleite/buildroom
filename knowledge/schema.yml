@@ -1,0 +1,29 @@
+version: 1
+source_roots:
+  - agents
+  - workflows
+required_fields:
+  - id
+  - kind
+  - title
+  - summary
+  - status
+  - audience
+  - tags
+  - applies_to
+  - depends_on
+  - related
+  - authority
+  - owner
+  - updated
+allowed_kinds:
+  - role
+  - workflow
+allowed_statuses:
+  - draft
+  - active
+  - deprecated
+  - archived
+allowed_audiences:
+  - human
+  - agent

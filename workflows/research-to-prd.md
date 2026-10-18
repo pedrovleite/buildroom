@@ -1,3 +1,19 @@
+---
+id: workflow.research-to-prd
+kind: workflow
+title: Research to PRD
+summary: Turns a product question into evidence, a bounded PRD, and an approved hand-off.
+status: active
+audience: [human, agent]
+tags: [domain/product-os, artifact/workflow, workflow/research, risk/standard]
+applies_to: [product-os]
+depends_on: [role.researcher, role.product-manager, role.architect]
+related: [workflow.prd-to-tech-spec]
+authority: human-product-approval
+owner: product-os
+updated: 2026-10-18
+---
+
 # Research to PRD
 
 1. Intake the idea and initialise `workflow-state.md`: set owner `Researcher`, classification (`light`, `standard`, or `high-impact`), user/problem, desired outcome, known constraints, and next action.
