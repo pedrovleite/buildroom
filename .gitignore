@@ -9,6 +9,9 @@
 # Local Buildroom runs belong to the host project, not this reusable package.
 product/active/
 
+# BMAD renders are task-local snapshots; its versioned scripts and configuration remain tracked.
+_bmad/render/
+
 # Reproducible local documentation inputs and static output.
 .buildroom-docs/
 .buildroom-site/
