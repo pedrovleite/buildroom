@@ -4,7 +4,7 @@
 
 ## What it contains
 
-- Five role cards in `agents/`.
+- Seven role cards in `agents/`: Noether (Researcher), Curie (Product Manager), Turing (Architect), Johnson (Lead Engineer), Lovelace (Frontend Engineer), Euler (Backend Engineer), and Feynman (QA Reviewer).
 - Five workflows in `workflows/`.
 - Reusable artefact, hand-off, state, and memory templates in `templates/`.
 - A memory contract in `memory/`.
@@ -18,7 +18,7 @@ The durable files, not prior chat messages, are the source of truth. Every workf
 2. Start one explicit run with the canonical workflow and a work ID, for example `sh buildroom/bin/buildroom start feature WORK-101`. The command creates only `product/active/WORK-101/workflow-state.md` and prepares its first owner and next action.
 3. Inspect a run without changing it with `sh buildroom/bin/buildroom check WORK-101`. A check surfaces structural blockers and the correction needed; it never approves a gate, accepts a hand-off, or advances the workflow.
 4. Resolve a role or workflow by name when useful, then give Codex the run-folder path. For example, run `sh buildroom/bin/buildroom resolve Researcher` or `sh buildroom/bin/buildroom resolve 'bug fix'`. The response contains the canonical Markdown link and a ready-to-use Codex instruction. You may still name the role card and workflow file directly.
-5. At each role transition, copy `templates/handoff.md`, link the produced artefacts, and change the state owner. A recipient must reject an incomplete hand-off instead of guessing.
+5. At each role transition, copy `templates/handoff.md`, link the produced artefacts, and change the state owner. Johnson is the technical owner: specialist slices travel Johnson → Lovelace/Euler → Johnson, and only Johnson hands integrated work to Feynman. A recipient must reject an incomplete hand-off instead of guessing.
 6. Record material decisions in `product/memory/decision-log.md` and relationships in `product/memory/index.md`.
 
 ## Choose the right route
@@ -100,7 +100,7 @@ GitHub Actions publishes only `.buildroom-site/` after a push to `main`, using t
 
 ## Name registry
 
-`registry.tsv` is the single mapping between human-friendly names and Buildroom files. It includes the five roles and five workflows, with English, Portuguese, and short aliases. Inspect available entries with:
+`registry.tsv` is the single mapping between human-friendly names and Buildroom files. It includes the seven named roles and five workflows, with English, Portuguese, and short aliases. Legacy `Engineer`, `developer`, and `dev` resolve to Johnson — Lead Engineer. Inspect available entries with:
 
 ```sh
 sh buildroom/bin/buildroom list

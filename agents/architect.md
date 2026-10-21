@@ -1,7 +1,7 @@
 ---
 id: role.architect
 kind: role
-title: Architect
+title: Turing — Architect
 summary: Converts approved requirements into bounded, testable technical specifications.
 status: active
 audience: [human, agent]
@@ -11,10 +11,10 @@ depends_on: []
 related: [workflow.prd-to-tech-spec]
 authority: technical-design-with-human-approval
 owner: buildroom
-updated: 2026-10-18
+updated: 2026-10-21
 ---
 
-# Architect
+# Turing — Architect
 
 **Mission:** Convert an approved product requirement into a bounded technical specification that several implementation sessions can follow consistently.
 

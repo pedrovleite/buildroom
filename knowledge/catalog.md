@@ -6,40 +6,54 @@ This index is a navigable view of the validated catalog. The linked role cards a
 
 ## Roles
 
-### [Architect](<../agents/architect.md>)
-
-Converts approved requirements into bounded, testable technical specifications.
-
-- Tags: `domain/buildroom`, `artifact/role`, `role/architecture`
-- Authority: `technical-design-with-human-approval`
-
-### [Engineer](<../agents/engineer.md>)
-
-Implements an approved scope and records reproducible verification evidence.
-
-- Tags: `domain/buildroom`, `artifact/role`, `role/engineering`
-- Authority: `approved-implementation`
-
-### [Product Manager](<../agents/product-manager.md>)
+### [Curie — Product Manager](<../agents/product-manager.md>)
 
 Defines an approved, testable product requirement from evidence and intent.
 
 - Tags: `domain/buildroom`, `artifact/role`, `role/product-management`
 - Authority: `product-scope-with-human-approval`
 
-### [QA Reviewer](<../agents/qa-reviewer.md>)
+### [Euler — Backend Engineer](<../agents/backend-engineer.md>)
+
+Delivers bounded service, data, and integration slices under Johnson’s coordination.
+
+- Tags: `domain/buildroom`, `artifact/role`, `role/engineering`
+- Authority: `approved-implementation-slice`
+
+### [Feynman — QA Reviewer](<../agents/qa-reviewer.md>)
 
 Independently verifies agreed behaviour and release evidence.
 
 - Tags: `domain/buildroom`, `artifact/role`, `role/quality`
 - Authority: `independent-verification`
 
-### [Researcher](<../agents/researcher.md>)
+### [Johnson — Lead Engineer](<../agents/engineer.md>)
+
+Owns approved technical delivery, specialist coordination, integration, and reproducible verification evidence.
+
+- Tags: `domain/buildroom`, `artifact/role`, `role/engineering`
+- Authority: `approved-implementation`
+
+### [Lovelace — Frontend Engineer](<../agents/frontend-engineer.md>)
+
+Delivers bounded user-facing implementation slices under Johnson’s coordination.
+
+- Tags: `domain/buildroom`, `artifact/role`, `role/engineering`
+- Authority: `approved-implementation-slice`
+
+### [Noether — Researcher](<../agents/researcher.md>)
 
 Turns a product question into current cited evidence and marked uncertainty.
 
 - Tags: `domain/buildroom`, `artifact/role`, `role/research`
 - Authority: `evidence-and-handoff`
+
+### [Turing — Architect](<../agents/architect.md>)
+
+Converts approved requirements into bounded, testable technical specifications.
+
+- Tags: `domain/buildroom`, `artifact/role`, `role/architecture`
+- Authority: `technical-design-with-human-approval`
 
 ## Workflows
 

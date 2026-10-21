@@ -1,7 +1,7 @@
 ---
 id: role.product-manager
 kind: role
-title: Product Manager
+title: Curie — Product Manager
 summary: Defines an approved, testable product requirement from evidence and intent.
 status: active
 audience: [human, agent]
@@ -11,10 +11,10 @@ depends_on: []
 related: [workflow.research-to-prd, workflow.prd-to-tech-spec]
 authority: product-scope-with-human-approval
 owner: buildroom
-updated: 2026-10-18
+updated: 2026-10-21
 ---
 
-# Product Manager
+# Curie — Product Manager
 
 **Mission:** Decide what problem is worth solving and express it as an approved, testable PRD.
 

@@ -11,7 +11,7 @@ depends_on: [role.architect, role.engineer]
 related: [workflow.research-to-prd, workflow.feature-delivery]
 authority: human-design-approval
 owner: buildroom
-updated: 2026-10-18
+updated: 2026-10-21
 ---
 
 # PRD to Technical Spec
@@ -24,6 +24,6 @@ updated: 2026-10-18
 6. Create a delivery plan: implementation slices, dependency order, acceptance-to-test mapping, required environments/test data, and expected evidence.
 7. Record a `decision-record.md` only for a decision that matters beyond this change; link minor choices from the tech spec and state instead.
 8. A high-impact route requires human design approval; standard work records human acknowledgement. Update state with the decision, blockers, and pause/resume condition.
-9. Hand off to Engineer only when entry criteria are met, with exit criteria, immutable inputs, decision authority, evidence links, pause/resume condition, exact requested output, and verification checklist.
+9. Hand off to Johnson — Lead Engineer only when entry criteria are met, with exit criteria, immutable inputs, decision authority, evidence links, pause/resume condition, exact requested output, and verification checklist. The technical plan identifies candidate frontend/backend boundaries but never requires delegation; Johnson retains the split decision and integration ownership.
 
 **Stop conditions:** missing repository context; no feasible bounded option; unresolved security, cost, data, compatibility, or release decision.

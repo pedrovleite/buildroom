@@ -5,6 +5,8 @@ source: workflows/feature-delivery.md
 read_order:
   - workflows/feature-delivery.md
   - agents/engineer.md
+  - agents/frontend-engineer.md
+  - agents/backend-engineer.md
   - agents/qa-reviewer.md
 ---
 
@@ -15,7 +17,9 @@ This is a generated navigation pack. Read the canonical workflow first, then the
 ## Read order
 1. [Read `workflows/feature-delivery.md`](../../workflows/feature-delivery.md)
 2. [Read `agents/engineer.md`](../../agents/engineer.md)
-3. [Read `agents/qa-reviewer.md`](../../agents/qa-reviewer.md)
+3. [Read `agents/frontend-engineer.md`](../../agents/frontend-engineer.md)
+4. [Read `agents/backend-engineer.md`](../../agents/backend-engineer.md)
+5. [Read `agents/qa-reviewer.md`](../../agents/qa-reviewer.md)
 
 ## Selection metadata
 - Catalog ID: `workflow.feature-delivery`

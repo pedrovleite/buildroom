@@ -25,7 +25,7 @@ for file in \
   codex/AGENTS.global-plugin.snippet bin/build-knowledge bin/build-docs bin/build-codex-plugin bin/install-codex-plugin mkdocs.yml requirements-docs.txt docs/public-content.yml .github/workflows/docs.yml \
   plugins/buildroom/.codex-plugin/plugin.json plugins/buildroom/skills/buildroom/SKILL.md plugins/buildroom/skills/buildroom-init/SKILL.md plugins/buildroom/scripts/init-project.py scripts/run-operations.py tests/verify-codex-plugin.sh tests/verify-run-operations.sh \
   knowledge/taxonomy.yml knowledge/taxonomy.md knowledge/schema.yml knowledge/README.md knowledge/catalog.yml knowledge/catalog.md \
-  agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/qa-reviewer.md \
+  agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/frontend-engineer.md agents/backend-engineer.md agents/qa-reviewer.md \
   workflows/research-to-prd.md workflows/prd-to-tech-spec.md workflows/feature-delivery.md workflows/bug-fix.md workflows/no-bullshit-bug-fix.md \
   templates/workflow-state.md templates/handoff.md templates/memory-index.md \
   memory/README.md example-project/README.md; do
@@ -100,8 +100,8 @@ require_in_order() {
 
 require_in_order knowledge/context/research-to-prd.md workflows/research-to-prd.md agents/researcher.md agents/product-manager.md agents/architect.md
 require_in_order knowledge/context/prd-to-tech-spec.md workflows/prd-to-tech-spec.md agents/architect.md agents/engineer.md
-require_in_order knowledge/context/feature-delivery.md workflows/feature-delivery.md agents/engineer.md agents/qa-reviewer.md
-require_in_order knowledge/context/bug-fix.md workflows/bug-fix.md agents/qa-reviewer.md agents/engineer.md
+require_in_order knowledge/context/feature-delivery.md workflows/feature-delivery.md agents/engineer.md agents/frontend-engineer.md agents/backend-engineer.md agents/qa-reviewer.md
+require_in_order knowledge/context/bug-fix.md workflows/bug-fix.md agents/qa-reviewer.md agents/engineer.md agents/frontend-engineer.md agents/backend-engineer.md
 require_in_order knowledge/context/no-bullshit-bug-fix.md workflows/no-bullshit-bug-fix.md agents/engineer.md
 
 make_knowledge_fixture() {
@@ -201,7 +201,7 @@ awk 'BEGIN { changed = 0 } { if (!changed && /^owner: buildroom$/) { sub("buildr
 expect_knowledge_error "$tmp_scalar" 'unsupported scalar syntax'
 
 make_knowledge_fixture "$tmp_dependency"
-awk 'BEGIN { changed = 0 } { if (!changed && /depends_on: \[role.engineer, role.qa-reviewer\]/) { sub("\\[role.engineer, role.qa-reviewer\\]", "[workflow.bug-fix]"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /depends_on: \[role.engineer, role.frontend-engineer, role.backend-engineer, role.qa-reviewer\]/) { sub("\\[role.engineer, role.frontend-engineer, role.backend-engineer, role.qa-reviewer\\]", "[workflow.bug-fix]"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_dependency/workflows/feature-delivery.md" > "$tmp_dependency/feature-delivery.md" && mv "$tmp_dependency/feature-delivery.md" "$tmp_dependency/workflows/feature-delivery.md"
 expect_knowledge_error "$tmp_dependency" 'workflow depends_on must reference a role id (workflow.bug-fix)'
 
@@ -219,7 +219,7 @@ expect_knowledge_error "$tmp_taxonomy" "invalid taxonomy tag 'domain|invalid'"
 
 make_knowledge_fixture "$tmp_markdown"
 mv "$tmp_markdown/agents/researcher.md" "$tmp_markdown/agents/researcher (guide).md"
-awk 'BEGIN { changed = 0 } { if (!changed && /^title: Researcher$/) { sub("Researcher", "Researcher [guide]"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /^title: Noether — Researcher$/) { sub("Noether — Researcher", "Researcher [guide]"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_markdown/agents/researcher (guide).md" > "$tmp_markdown/researcher.md" && mv "$tmp_markdown/researcher.md" "$tmp_markdown/agents/researcher (guide).md"
 "$root/bin/build-knowledge" --root "$tmp_markdown" --write >/dev/null
 grep -Fq '[Researcher \[guide\]](<../agents/researcher%20%28guide%29.md>)' "$tmp_markdown/knowledge/catalog.md"
@@ -311,7 +311,9 @@ require_text workflows/prd-to-tech-spec.md 'high-impact route requires human des
 require_text workflows/feature-delivery.md 'feature-record.md'
 require_text workflows/feature-delivery.md 'independent peer/agent review'
 require_text workflows/feature-delivery.md 'workflow-state.md'
-require_text workflows/feature-delivery.md 'Engineer-to-QA hand-off'
+require_text workflows/feature-delivery.md 'Johnson-to-Feynman hand-off'
+require_text workflows/feature-delivery.md 'Johnson-to-Lovelace'
+require_text workflows/feature-delivery.md 'simultaneous ownership'
 require_text workflows/feature-delivery.md 'release readiness'
 require_text workflows/feature-delivery.md 'not applicable'
 require_text workflows/feature-delivery.md 'high-impact route always records the named risk evidence'
@@ -327,7 +329,8 @@ require_text templates/feature-record.md 'Close-out and archive'
 
 # Reported bug: reproduction, root-cause hypothesis, and regression coverage.
 require_text workflows/bug-fix.md 'attempts reproduction'
-require_text workflows/bug-fix.md 'QA-to-Engineer hand-off'
+require_text workflows/bug-fix.md 'Feynman-to-Johnson hand-off'
+require_text workflows/bug-fix.md 'proposed hand-off'
 require_text workflows/bug-fix.md 'Human approves every standard fix plan'
 require_text workflows/bug-fix.md 'workflow-state.md'
 require_text workflows/bug-fix.md '## Incident branch'
@@ -389,6 +392,9 @@ require_text templates/memory-index.md 'Retrieval rules'
 # Name routing: all public roles/workflows have a registry entry and aliases resolve deterministically.
 require_text registry.tsv 'Researcher'
 require_text registry.tsv 'Product Manager'
+require_text registry.tsv 'Johnson — Lead Engineer'
+require_text registry.tsv 'Lovelace — Frontend Engineer'
+require_text registry.tsv 'Euler — Backend Engineer'
 require_text registry.tsv 'Bug Fix'
 require_text registry.tsv 'No-Bullshit Bug Fix'
 require_text codex/AGENTS.md.snippet 'registry.tsv'
@@ -396,19 +402,24 @@ require_text README.md 'Name registry'
 
 resolve_output=$(sh "$root/bin/buildroom" resolve Researcher)
 printf '%s\n' "$resolve_output" | grep -Fq 'Type: agent'
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Noether — Researcher'
 printf '%s\n' "$resolve_output" | grep -Fq 'buildroom/agents/researcher.md'
 
 resolve_output=$(sh "$root/bin/buildroom" resolve 'Product Manager')
-printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Product Manager'
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Curie — Product Manager'
 
 resolve_output=$(sh "$root/bin/buildroom" resolve pesquisador)
-printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Researcher'
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Noether — Researcher'
 
 resolve_output=$(sh "$root/bin/buildroom" resolve PM)
-printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Product Manager'
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Curie — Product Manager'
 
 resolve_output=$(sh "$root/bin/buildroom" resolve qa)
-printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: QA Reviewer'
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Feynman — QA Reviewer'
+
+for name in Curie Turing Feynman Engineer developer dev 'Lead Engineer' Lovelace 'Frontend Engineer' Euler 'Backend Engineer'; do
+  sh "$root/bin/buildroom" resolve "$name" | grep -Fq 'Type: agent'
+done
 
 resolve_output=$(sh "$root/bin/buildroom" resolve 'correção de bug')
 printf '%s\n' "$resolve_output" | grep -Fq 'Type: workflow'
@@ -425,7 +436,8 @@ resolve_output=$(sh "$root/bin/buildroom" resolve 'correção rápida')
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: No-Bullshit Bug Fix'
 
 list_output=$(sh "$root/bin/buildroom" list)
-printf '%s\n' "$list_output" | grep -Fq 'agent: Researcher'
+printf '%s\n' "$list_output" | grep -Fq 'agent: Noether — Researcher'
+printf '%s\n' "$list_output" | grep -Fq 'agent: Johnson — Lead Engineer'
 printf '%s\n' "$list_output" | grep -Fq 'workflow: Bug Fix'
 printf '%s\n' "$list_output" | grep -Fq 'workflow: No-Bullshit Bug Fix'
 

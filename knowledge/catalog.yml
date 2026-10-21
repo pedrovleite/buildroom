@@ -3,7 +3,7 @@ version: 1
 entries:
   - id: "role.architect"
     kind: "role"
-    title: "Architect"
+    title: "Turing — Architect"
     summary: "Converts approved requirements into bounded, testable technical specifications."
     status: "active"
     audience: ["human", "agent"]
@@ -13,12 +13,26 @@ entries:
     related: ["workflow.prd-to-tech-spec"]
     authority: "technical-design-with-human-approval"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "agents/architect.md"
+  - id: "role.backend-engineer"
+    kind: "role"
+    title: "Euler — Backend Engineer"
+    summary: "Delivers bounded service, data, and integration slices under Johnson’s coordination."
+    status: "active"
+    audience: ["human", "agent"]
+    tags: ["domain/buildroom", "artifact/role", "role/engineering"]
+    applies_to: ["buildroom"]
+    depends_on: []
+    related: ["workflow.feature-delivery", "workflow.bug-fix"]
+    authority: "approved-implementation-slice"
+    owner: "buildroom"
+    updated: "2026-10-21"
+    source: "agents/backend-engineer.md"
   - id: "role.engineer"
     kind: "role"
-    title: "Engineer"
-    summary: "Implements an approved scope and records reproducible verification evidence."
+    title: "Johnson — Lead Engineer"
+    summary: "Owns approved technical delivery, specialist coordination, integration, and reproducible verification evidence."
     status: "active"
     audience: ["human", "agent"]
     tags: ["domain/buildroom", "artifact/role", "role/engineering"]
@@ -27,11 +41,25 @@ entries:
     related: ["workflow.feature-delivery", "workflow.bug-fix", "workflow.no-bullshit-bug-fix"]
     authority: "approved-implementation"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "agents/engineer.md"
+  - id: "role.frontend-engineer"
+    kind: "role"
+    title: "Lovelace — Frontend Engineer"
+    summary: "Delivers bounded user-facing implementation slices under Johnson’s coordination."
+    status: "active"
+    audience: ["human", "agent"]
+    tags: ["domain/buildroom", "artifact/role", "role/engineering"]
+    applies_to: ["buildroom"]
+    depends_on: []
+    related: ["workflow.feature-delivery", "workflow.bug-fix"]
+    authority: "approved-implementation-slice"
+    owner: "buildroom"
+    updated: "2026-10-21"
+    source: "agents/frontend-engineer.md"
   - id: "role.product-manager"
     kind: "role"
-    title: "Product Manager"
+    title: "Curie — Product Manager"
     summary: "Defines an approved, testable product requirement from evidence and intent."
     status: "active"
     audience: ["human", "agent"]
@@ -41,11 +69,11 @@ entries:
     related: ["workflow.research-to-prd", "workflow.prd-to-tech-spec"]
     authority: "product-scope-with-human-approval"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "agents/product-manager.md"
   - id: "role.qa-reviewer"
     kind: "role"
-    title: "QA Reviewer"
+    title: "Feynman — QA Reviewer"
     summary: "Independently verifies agreed behaviour and release evidence."
     status: "active"
     audience: ["human", "agent"]
@@ -55,11 +83,11 @@ entries:
     related: ["workflow.feature-delivery", "workflow.bug-fix"]
     authority: "independent-verification"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "agents/qa-reviewer.md"
   - id: "role.researcher"
     kind: "role"
-    title: "Researcher"
+    title: "Noether — Researcher"
     summary: "Turns a product question into current cited evidence and marked uncertainty."
     status: "active"
     audience: ["human", "agent"]
@@ -69,7 +97,7 @@ entries:
     related: ["workflow.research-to-prd"]
     authority: "evidence-and-handoff"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "agents/researcher.md"
   - id: "workflow.bug-fix"
     kind: "workflow"
@@ -79,11 +107,11 @@ entries:
     audience: ["human", "agent"]
     tags: ["domain/buildroom", "artifact/workflow", "workflow/bug-fix", "risk/standard", "risk/high-impact"]
     applies_to: ["buildroom"]
-    depends_on: ["role.qa-reviewer", "role.engineer"]
+    depends_on: ["role.qa-reviewer", "role.engineer", "role.frontend-engineer", "role.backend-engineer"]
     related: ["workflow.no-bullshit-bug-fix"]
     authority: "human-fix-approval"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "workflows/bug-fix.md"
     context: "knowledge/context/bug-fix.md"
   - id: "workflow.feature-delivery"
@@ -94,11 +122,11 @@ entries:
     audience: ["human", "agent"]
     tags: ["domain/buildroom", "artifact/workflow", "workflow/delivery", "risk/standard", "risk/high-impact"]
     applies_to: ["buildroom"]
-    depends_on: ["role.engineer", "role.qa-reviewer"]
+    depends_on: ["role.engineer", "role.frontend-engineer", "role.backend-engineer", "role.qa-reviewer"]
     related: ["workflow.prd-to-tech-spec"]
     authority: "human-release-approval"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "workflows/feature-delivery.md"
     context: "knowledge/context/feature-delivery.md"
   - id: "workflow.no-bullshit-bug-fix"
@@ -113,7 +141,7 @@ entries:
     related: ["workflow.bug-fix"]
     authority: "workflow-invocation-is-human-approval"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "workflows/no-bullshit-bug-fix.md"
     context: "knowledge/context/no-bullshit-bug-fix.md"
   - id: "workflow.prd-to-tech-spec"
@@ -128,7 +156,7 @@ entries:
     related: ["workflow.research-to-prd", "workflow.feature-delivery"]
     authority: "human-design-approval"
     owner: "buildroom"
-    updated: "2026-10-18"
+    updated: "2026-10-21"
     source: "workflows/prd-to-tech-spec.md"
     context: "knowledge/context/prd-to-tech-spec.md"
   - id: "workflow.research-to-prd"

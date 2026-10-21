@@ -19,6 +19,10 @@ public_files:
     destination: agents/architect.md
   - source: agents/engineer.md
     destination: agents/engineer.md
+  - source: agents/frontend-engineer.md
+    destination: agents/frontend-engineer.md
+  - source: agents/backend-engineer.md
+    destination: agents/backend-engineer.md
   - source: agents/qa-reviewer.md
     destination: agents/qa-reviewer.md
   - source: workflows/research-to-prd.md
