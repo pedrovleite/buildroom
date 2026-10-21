@@ -40,7 +40,7 @@ From a checkout of this repository, run:
 bin/install-codex-plugin
 ```
 
-The installer builds and validates an ignored bundle, creates the default personal marketplace on first use, installs the plugin at `~/plugins/buildroom`, and adds `buildroom@personal` to Codex. It does not modify any target repository. Start a **new Codex thread** after installation so its skills are loaded.
+The installer first ensures Graphify is available and registers its Codex skill. If Graphify is missing, it installs the open-source `graphifyy` package with `uv` (preferred) or `pipx`; it leaves an existing Graphify version in place. Python 3.10+ and one of those package managers are required when Graphify is not already installed. It then builds and validates an ignored Buildroom bundle, creates the default personal marketplace on first use, installs the plugin at `~/plugins/buildroom`, and adds `buildroom@personal` to Codex. Start a **new Codex thread** after installation so its skills are loaded.
 
 In a target repository, ask Codex to **initialize Buildroom in this repository**. The explicit initializer creates only:
 
@@ -55,6 +55,8 @@ product/
 
 It also adds a delimited Buildroom block to `AGENTS.md`, preserving every existing instruction. A workflow run, PRD, tech spec, hand-off, or decision is created only when you ask to start that work. Buildroom never stores project state in the global plugin.
 
+The initializer also adds `graphify-out/` to `.gitignore` while preserving existing entries. It does not build a graph. On the first code-focused task, Buildroom creates the local code-only graph with `graphify extract . --code-only`; later tasks refresh changed code incrementally with `graphify update .`. It then consults the graph with `graphify query` (and `path` or `explain` when useful) before broad source exploration, whether or not the repository has been initialized with Buildroom. Code extraction uses local parsing, skips documents and media, requires no model/API credentials, and writes generated output to `graphify-out/`. If Graphify fails or cannot handle the repository, Buildroom reports that and uses bounded direct inspection.
+
 To update after pulling a newer version of this repository, run the same command again. It stages and validates the replacement before changing the installed source; if Codex cannot reinstall it, the previous plugin source is restored. Use `bin/install-codex-plugin --dry-run` to validate the installation path without changing your Codex setup.
 
 ### Upgrade from Product OS
@@ -63,7 +65,9 @@ Rename a portable `product-os/` checkout to `buildroom/` (or update its subtree/
 
 ## Install in another project (portable package)
 
-Copy the `buildroom/` directory into the target repository. Then create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Buildroom needs only Python 3 from the host standard installation to validate and regenerate its knowledge catalog. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
+Copy the `buildroom/` directory into the target repository. Install the required Graphify companion with Python 3.10+ and `uv` or `pipx` (`uv tool install --python '>=3.10' graphifyy` or `pipx install graphifyy`), then register it for Codex with `graphify install --platform codex`. Initialize Buildroom and create the folders shown in `example-project/README.md`; no secrets, API key, BMad runtime, or path from this repository is required. Buildroom needs only Python 3 from the host standard installation to validate and regenerate its knowledge catalog. Keep the package as a Git subtree, submodule, or copied directory if you want versioned upgrades.
+
+Portable installations follow the same local-only code graph workflow: Buildroom lazily runs `graphify extract . --code-only` once, refreshes later changes with `graphify update .`, and queries `graphify-out/` before broad source exploration. The initializer ignores this generated directory. If extraction or querying fails, the limitation is reported and bounded direct inspection is used.
 
 For name-first use in Codex without the global plugin, merge `buildroom/codex/AGENTS.md.snippet` into the target repository's existing `AGENTS.md`. It tells Codex to resolve names through `registry.tsv` before asking you for a file path, while leaving the repository's own coding instructions in charge. This is routing guidance, not native slash commands or background agents.
 
@@ -132,7 +136,7 @@ For a future BMad distribution, package these role cards and workflows as a cust
 
 ## Memory now and later
 
-The file-backed memory index is required. A graph backend such as Graphiti is optional: it may ingest IDs, links, timestamps, and decisions from these Markdown files later, but it must never become the only record of a workflow.
+The file-backed memory index is required. Graphify is a required local code navigation companion; Graphiti remains an optional memory backend that may ingest IDs, links, timestamps, and decisions from these Markdown files later, but must never become the only record of a workflow. Graphify does not replace Buildroom's file-backed authority or require Graphify Cloud.
 
 ## Verify the package
 
