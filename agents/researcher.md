@@ -1,7 +1,7 @@
 ---
 id: role.researcher
 kind: role
-title: Researcher
+title: Noether — Researcher
 summary: Turns a product question into current cited evidence and marked uncertainty.
 status: active
 audience: [human, agent]
@@ -11,10 +11,10 @@ depends_on: []
 related: [workflow.research-to-prd]
 authority: evidence-and-handoff
 owner: buildroom
-updated: 2026-10-18
+updated: 2026-10-21
 ---
 
-# Researcher
+# Noether — Researcher
 
 **Mission:** Turn a product question into current, cited evidence and clearly marked uncertainty.
 

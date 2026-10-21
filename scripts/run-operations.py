@@ -49,12 +49,25 @@ class Route:
 
 
 ROUTES = {
-    "research-to-prd": Route("research-to-prd", "Researcher", "draft", "standard", "Frame the decision and record the target user, problem, and desired outcome."),
-    "prd-to-tech-spec": Route("prd-to-tech-spec", "Architect", "draft", "standard", "Perform repository reconnaissance and record the evidence before choosing a design."),
-    "feature-delivery": Route("feature-delivery", "Engineer", "draft", "standard", "Confirm the approved inputs, entry criteria, and implementation readiness."),
-    "bug-fix": Route("bug-fix", "QA Reviewer", "triage", "standard", "Attempt reproduction and record the confirming or missing evidence."),
-    "no-bullshit-bug-fix": Route("no-bullshit-bug-fix", "Engineer", "preflight", "express", "Record every eligibility check and run the pre-change regression check."),
+    "research-to-prd": Route("research-to-prd", "Noether — Researcher", "draft", "standard", "Frame the decision and record the target user, problem, and desired outcome."),
+    "prd-to-tech-spec": Route("prd-to-tech-spec", "Turing — Architect", "draft", "standard", "Perform repository reconnaissance and record the evidence before choosing a design."),
+    "feature-delivery": Route("feature-delivery", "Johnson — Lead Engineer", "draft", "standard", "Confirm the approved inputs, entry criteria, implementation readiness, and integration plan."),
+    "bug-fix": Route("bug-fix", "Feynman — QA Reviewer", "triage", "standard", "Attempt reproduction and record the confirming or missing evidence."),
+    "no-bullshit-bug-fix": Route("no-bullshit-bug-fix", "Johnson — Lead Engineer", "preflight", "express", "Record every eligibility check and run the pre-change regression check."),
 }
+
+ALLOWED_HANDOFFS = {
+    ("Noether — Researcher", "Curie — Product Manager"),
+    ("Curie — Product Manager", "Turing — Architect"),
+    ("Turing — Architect", "Johnson — Lead Engineer"),
+    ("Feynman — QA Reviewer", "Johnson — Lead Engineer"),
+    ("Johnson — Lead Engineer", "Lovelace — Frontend Engineer"),
+    ("Johnson — Lead Engineer", "Euler — Backend Engineer"),
+    ("Lovelace — Frontend Engineer", "Johnson — Lead Engineer"),
+    ("Euler — Backend Engineer", "Johnson — Lead Engineer"),
+    ("Johnson — Lead Engineer", "Feynman — QA Reviewer"),
+}
+SPECIALISTS = {"Lovelace — Frontend Engineer", "Euler — Backend Engineer"}
 
 
 class InvocationError(ValueError):
@@ -289,14 +302,24 @@ def handoff_issues(handoff: Path, project: Path) -> tuple[dict[str, str], list[s
     return fields, issues
 
 
-def accepted_handoff(run: Path, work_id: str, owner: str, project: Path) -> bool:
+def accepted_handoffs(run: Path, project: Path) -> list[dict[str, str]]:
+    accepted: list[dict[str, str]] = []
     for handoff in sorted(run.glob("handoff-*.md")):
         if handoff.is_symlink() or not handoff.is_file():
             continue
         fields, issues = handoff_issues(handoff, project)
-        if (not issues and fields.get("work_id") == work_id and fields.get("to_role") == owner and fields.get("status") == "accepted"):
-            return True
-    return False
+        if not issues and fields.get("status") == "accepted":
+            accepted.append(fields)
+    return accepted
+
+
+def has_accepted_handoff(handoffs: list[dict[str, str]], work_id: str, sender: str | None, recipient: str) -> bool:
+    return any(
+        handoff.get("work_id") == work_id
+        and handoff.get("to_role") == recipient
+        and (sender is None or handoff.get("from_role") == sender)
+        for handoff in handoffs
+    )
 
 
 def check(args: argparse.Namespace, package_root: Path) -> int:
@@ -344,10 +367,29 @@ def check(args: argparse.Namespace, package_root: Path) -> int:
             for issue in issues:
                 blockers.append((f"accepted hand-off `{handoff.name}` {issue}", f"complete {handoff}"))
     owner = fields.get("owner_role", "")
+    accepted = accepted_handoffs(run, project)
+    for handoff in accepted:
+        sender, recipient = handoff.get("from_role", ""), handoff.get("to_role", "")
+        if route and route.route == "express":
+            blockers.append((f"express route must not accept hand-offs ({sender} to {recipient})", "remove the hand-off and keep Johnson as the sole owner"))
+        elif (sender, recipient) not in ALLOWED_HANDOFFS:
+            blockers.append((f"accepted hand-off `{sender}` to `{recipient}` is not an allowed owner transition", "return the work to its allowed owner before creating another accepted hand-off"))
     if route and fields.get("route") and fields["route"] != route.route:
         blockers.append((f"workflow `{route.slug}` requires route `{route.route}`, not `{fields['route']}`", f"set `route: {route.route}` in {state_path}"))
-    if route and owner and owner != route.owner and not accepted_handoff(run, args.work_id, owner, project):
+    if route and owner and owner != route.owner and not has_accepted_handoff(accepted, args.work_id, None, owner):
         blockers.append((f"owner `{owner}` has no accepted matching hand-off", f"add an accepted hand-off to {run} for {owner}"))
+    pending_specialists = [
+        specialist for specialist in SPECIALISTS
+        if has_accepted_handoff(accepted, args.work_id, "Johnson — Lead Engineer", specialist)
+        and not has_accepted_handoff(accepted, args.work_id, specialist, "Johnson — Lead Engineer")
+    ]
+    if len(pending_specialists) > 1:
+        blockers.append(("more than one specialist has an unreturned Johnson hand-off", "wait for Johnson to accept and integrate one specialist return before delegating the next slice"))
+    if owner not in SPECIALISTS:
+        for specialist in pending_specialists:
+            blockers.append((f"specialist `{specialist}` has no accepted return to Johnson", f"add an accepted {specialist}-to-Johnson hand-off before integration or QA"))
+    if owner == "Feynman — QA Reviewer" and not has_accepted_handoff(accepted, args.work_id, "Johnson — Lead Engineer", owner):
+        blockers.append(("Feynman may receive engineering work only from Johnson", f"add an accepted Johnson-to-Feynman hand-off to {run}"))
     status = fields.get("status", "")
     decisions = state_sections.get("Decisions in force", "")
     if APPROVAL_STATUS.fullmatch(status):

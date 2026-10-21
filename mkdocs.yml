@@ -34,11 +34,13 @@ nav:
       - Catalog: knowledge/catalog.md
       - Taxonomy: knowledge/taxonomy.md
   - Roles:
-      - Researcher: agents/researcher.md
-      - Product Manager: agents/product-manager.md
-      - Architect: agents/architect.md
-      - Engineer: agents/engineer.md
-      - QA Reviewer: agents/qa-reviewer.md
+      - Noether — Researcher: agents/researcher.md
+      - Curie — Product Manager: agents/product-manager.md
+      - Turing — Architect: agents/architect.md
+      - Johnson — Lead Engineer: agents/engineer.md
+      - Lovelace — Frontend Engineer: agents/frontend-engineer.md
+      - Euler — Backend Engineer: agents/backend-engineer.md
+      - Feynman — QA Reviewer: agents/qa-reviewer.md
   - Workflows:
       - Research to PRD: workflows/research-to-prd.md
       - PRD to Technical Spec: workflows/prd-to-tech-spec.md
