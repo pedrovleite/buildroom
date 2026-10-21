@@ -51,6 +51,14 @@ It emits these outcomes:
 
 `READY` and warnings-only results exit `0`.
 
+## Required codebase graph
+
+Graphify is a required local code-navigation companion for Buildroom code tasks; it is separate from Buildroom's product memory and works whether or not the repository has been initialized for Buildroom. The standard Codex installer provisions its CLI and registers its Codex skill. For a portable Buildroom install, install `graphifyy` with `uv tool install --python '>=3.10' graphifyy` or `pipx install graphifyy`, then run `graphify install --platform codex`.
+
+On the first code-focused task, create the graph from the repository root with `graphify extract . --code-only`. Before later queries, refresh changed code incrementally with `graphify update .`, then use `graphify query`, `graphify path`, or `graphify explain` to locate relevant source before broad exploration. The code-only graph is parsed locally, needs no model/API credentials, and is generated under `graphify-out/`; Buildroom initialization adds that directory to `.gitignore` without creating the graph.
+
+If Graphify is unavailable, extraction/query fails, or the repository is unsupported, state the limitation and fall back to bounded direct source inspection. Do not claim the graph was consulted. Buildroom's `product/` records remain authoritative for decisions, approvals, evidence, and run state; Graphify does not require Graphify Cloud or replace that record.
+
 ## Express bug fixes
 
 The No-Bullshit Bug Fix route is explicit:

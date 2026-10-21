@@ -12,6 +12,9 @@ destination="$plugin_parent/buildroom"
 legacy_destination="$plugin_parent/product-os"
 marketplace=${BUILDROOM_MARKETPLACE_PATH:-"$HOME/.agents/plugins/marketplace.json"}
 codex_command=${BUILDROOM_CODEX_COMMAND:-codex}
+graphify_command=${BUILDROOM_GRAPHIFY_COMMAND:-graphify}
+uv_command=${BUILDROOM_UV_COMMAND:-uv}
+pipx_command=${BUILDROOM_PIPX_COMMAND:-pipx}
 dry_run=false
 
 usage() {
@@ -19,7 +22,81 @@ usage() {
 Usage: bin/install-codex-plugin [--dry-run]
 
 Builds and validates Buildroom, then installs it from the personal Codex marketplace.
+Graphify is a required companion and is installed separately when it is missing.
 EOF
+}
+
+find_graphify() {
+  if command -v "$graphify_command" >/dev/null 2>&1; then
+    command -v "$graphify_command"
+    return 0
+  fi
+  if command -v "$uv_command" >/dev/null 2>&1; then
+    graphify_bin=$("$uv_command" tool dir --bin 2>/dev/null || true)
+    if [ -n "$graphify_bin" ] && [ -x "$graphify_bin/graphify" ]; then
+      printf '%s\n' "$graphify_bin/graphify"
+      return 0
+    fi
+  fi
+  if command -v "$pipx_command" >/dev/null 2>&1; then
+    graphify_bin=$("$pipx_command" environment --value PIPX_BIN_DIR 2>/dev/null || true)
+    if [ -n "$graphify_bin" ] && [ -x "$graphify_bin/graphify" ]; then
+      printf '%s\n' "$graphify_bin/graphify"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+python_graphify_compatible() {
+  python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1
+}
+
+provision_graphify() {
+  if find_graphify; then
+    graphify_bin=$(find_graphify)
+    printf 'Graphify is already installed at %s; preserving its version.\n' "$graphify_bin"
+  else
+    if ! command -v "$uv_command" >/dev/null 2>&1 && ! command -v "$pipx_command" >/dev/null 2>&1; then
+      printf 'Graphify is missing. Install Python 3.10+ and either uv or pipx, then rerun this installer. See https://graphify.dev/installation.\n' >&2
+      return 1
+    fi
+    if ! command -v "$uv_command" >/dev/null 2>&1 && ! python_graphify_compatible; then
+      printf 'Graphify requires Python 3.10 or newer. Install or select Python 3.10+ and retry.\n' >&2
+      return 1
+    fi
+    if command -v "$uv_command" >/dev/null 2>&1; then
+      printf 'Installing Graphify CLI package graphifyy with uv.\n'
+      if ! "$uv_command" tool install --python '>=3.10' graphifyy; then
+        if command -v "$pipx_command" >/dev/null 2>&1; then
+          printf 'uv installation failed; trying the available pipx fallback.\n' >&2
+          if ! "$pipx_command" install graphifyy; then
+            printf 'Graphify installation failed with both uv and pipx. Repair either package manager and retry.\n' >&2
+            return 1
+          fi
+        else
+          printf 'Graphify installation with uv failed. Repair uv/Python access and rerun this installer before replacing Buildroom.\n' >&2
+          return 1
+        fi
+      fi
+    elif command -v "$pipx_command" >/dev/null 2>&1; then
+      printf 'Installing Graphify CLI package graphifyy with pipx.\n'
+      if ! "$pipx_command" install graphifyy; then
+        printf 'Graphify installation with pipx failed. Repair pipx/Python access and rerun this installer before replacing Buildroom.\n' >&2
+        return 1
+      fi
+    fi
+    if ! find_graphify; then
+      printf 'Graphify was installed, but its graphify command is not available. Add the uv or pipx tool bin directory to PATH, open a new terminal, and rerun this installer.\n' >&2
+      return 1
+    fi
+    graphify_bin=$(find_graphify)
+  fi
+  printf 'Registering Graphify for Codex.\n'
+  if ! "$graphify_bin" install --platform codex; then
+    printf 'Graphify Codex skill registration failed. Repair the Graphify install and rerun this installer before replacing Buildroom.\n' >&2
+    return 1
+  fi
 }
 
 case ${1:-} in
@@ -56,14 +133,25 @@ trap cleanup EXIT HUP INT TERM
 "$root/bin/build-codex-plugin" --output "$stage/buildroom" --write
 if python3 -c 'import yaml' >/dev/null 2>&1; then
   python3 "$validator" "$stage/buildroom"
-elif command -v uv >/dev/null 2>&1; then
-  uv run --with pyyaml python "$validator" "$stage/buildroom"
+elif command -v "$uv_command" >/dev/null 2>&1 || command -v uv >/dev/null 2>&1; then
+  validator_uv=$uv_command
+  if ! command -v "$validator_uv" >/dev/null 2>&1; then
+    validator_uv=uv
+  fi
+  "$validator_uv" run --with pyyaml python "$validator" "$stage/buildroom"
 else
   printf 'Buildroom plugin validation needs PyYAML. Install it for Python or install uv and retry.\n' >&2
   exit 1
 fi
 
 if [ "$dry_run" = true ]; then
+  if find_graphify; then
+    printf 'dry-run: Graphify is already installed; would ensure its Codex skill registration.\n'
+  elif command -v "$uv_command" >/dev/null 2>&1 || { python_graphify_compatible && command -v "$pipx_command" >/dev/null 2>&1; }; then
+    printf 'dry-run: Graphify is missing; would install graphifyy with %s and register its Codex skill.\n' "$(if command -v "$uv_command" >/dev/null 2>&1; then printf uv; else printf pipx; fi)"
+  else
+    printf 'dry-run: Graphify is missing and prerequisites are incomplete; Python 3.10+ and uv or pipx are required.\n'
+  fi
   printf 'dry-run: would install validated plugin at %s and use %s\n' "$destination" "$marketplace"
   exit 0
 fi
@@ -72,6 +160,8 @@ if [ ! -f "$creator" ] || [ ! -f "$validator" ] || [ ! -f "$marketplace_reader" 
   printf 'Codex plugin-creator tooling was not found under %s. Run this from Codex Desktop.\n' "$codex_root" >&2
   exit 1
 fi
+
+provision_graphify
 
 marketplace_has_buildroom() {
   python3 - "$marketplace" <<'PY'

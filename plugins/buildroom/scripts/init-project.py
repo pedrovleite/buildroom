@@ -109,7 +109,9 @@ def main() -> None:
 
     product = repository / "product"
     agents_path = repository / "AGENTS.md"
+    gitignore_path = repository / ".gitignore"
     require_regular_file_or_missing(agents_path)
+    require_regular_file_or_missing(gitignore_path)
     require_directory_or_missing(product)
     for directory in (product / "active", product / "archive", product / "memory"):
         require_directory_or_missing(directory)
@@ -118,8 +120,21 @@ def main() -> None:
 
     existing = agents_path.read_text(encoding="utf-8") if agents_path.exists() else ""
     merged = merge_agents(existing, managed_block())
+    gitignore_existing = gitignore_path.read_bytes().decode("utf-8") if gitignore_path.exists() else ""
+    ignored_entries = gitignore_existing.splitlines()
+    gitignore_merged = gitignore_existing
+    if "graphify-out/" not in ignored_entries:
+        separator = "" if not gitignore_merged or gitignore_merged.endswith("\n") else "\n"
+        gitignore_merged += separator + "graphify-out/\n"
 
     changes: list[str] = []
+    if gitignore_merged == gitignore_existing:
+        changes.append(f"preserved {gitignore_path}")
+    else:
+        changes.append(f"updated {gitignore_path} with graphify-out/")
+        if not args.dry_run:
+            gitignore_path.write_bytes(gitignore_merged.encode("utf-8"))
+
     for directory in (product / "active", product / "archive"):
         if directory.exists():
             changes.append(f"preserved {directory}")

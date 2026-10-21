@@ -16,3 +16,9 @@ Use the bundled canonical references in `references/toolkit/`; they are global c
 The express No-Bullshit Bug Fix route is valid only when all eligibility rules in its canonical workflow are true. Its invocation is the scoped approval to implement; all other standard fixes still require their named human approval.
 
 For a legacy Product OS repository, explain that the explicit Buildroom initializer upgrades only its marked routing block while preserving the repository's `product/` state and other instructions.
+
+## Codebase navigation with Graphify
+
+Graphify is a required companion for code-focused work, whether or not Buildroom has been initialized in the repository. Before broad source exploration, work from the repository root: if `graphify-out/graph.json` does not exist, create the local code-only graph with `graphify extract . --code-only`; if it exists, refresh changed code incrementally with `graphify update .`. Query it first with `graphify query "<the code question>"`; use `graphify path "<source>" "<destination>"` or `graphify explain "<node>"` when those views help answer the question. Code extraction skips documents and media and needs no model/API credentials. Treat the repository's `product/` Markdown as authoritative for decisions, run state, evidence, and hand-offs.
+
+If Graphify is missing, the repository is unsupported, or extraction/query fails, say what failed and continue with bounded direct inspection; do not imply that the graph was consulted. Refresh incrementally with `graphify update .` after code changes before using the graph again. The generated `graphify-out/` directory is ignored by Git and is created lazily on the first code-focused task, not during repository initialization.
