@@ -4,9 +4,9 @@ public_files:
   - source: README.md
     destination: operating-model.md
   - source: docs/run-operations.md
-    destination: run-operations.md
+    destination: docs/run-operations.md
   - source: docs/project-installer.md
-    destination: project-installer.md
+    destination: docs/project-installer.md
   - source: knowledge/README.md
     destination: knowledge/README.md
   - source: knowledge/catalog.md
