@@ -12,6 +12,7 @@ START = "<!-- buildroom:global-plugin:start -->"
 END = "<!-- buildroom:global-plugin:end -->"
 LEGACY_START = "<!-- product-os:global-plugin:start -->"
 LEGACY_END = "<!-- product-os:global-plugin:end -->"
+AGENT_PROFILE_MARKER = "# Managed by Buildroom. Local edits are replaced when Buildroom is initialized again."
 
 
 def parse_args() -> argparse.Namespace:
@@ -101,6 +102,30 @@ def require_directory_or_missing(path: Path) -> None:
         raise ValueError(f"Expected a directory or no path at: {path}")
 
 
+def managed_agent_profiles(repository: Path) -> dict[Path, str]:
+    source = plugin_root() / "skills" / "buildroom" / "references" / "agent-profiles"
+    if source.is_symlink() or not source.is_dir():
+        raise ValueError(f"Buildroom agent profile templates are missing or unsafe: {source}")
+    profiles: dict[Path, str] = {}
+    for template in sorted(source.glob("buildroom-*.toml")):
+        if template.is_symlink() or not template.is_file():
+            raise ValueError(f"Buildroom agent profile template is not a regular file: {template}")
+        content = template.read_text(encoding="utf-8")
+        if not content.startswith(AGENT_PROFILE_MARKER + "\n"):
+            raise ValueError(f"Buildroom agent profile template has no ownership marker: {template}")
+        target = repository / ".codex" / "agents" / template.name
+        require_regular_file_or_missing(target)
+        if target.exists() and not target.read_text(encoding="utf-8").startswith(AGENT_PROFILE_MARKER + "\n"):
+            raise ValueError(
+                f"Refusing to overwrite an unmanaged Codex agent profile: {target}. "
+                "Rename it or choose a different Buildroom profile filename, then retry."
+            )
+        profiles[target] = content
+    if not profiles:
+        raise ValueError(f"No Buildroom agent profile templates found in {source}")
+    return profiles
+
+
 def main() -> None:
     args = parse_args()
     repository = Path(args.repository).expanduser().resolve()
@@ -110,13 +135,18 @@ def main() -> None:
     product = repository / "product"
     agents_path = repository / "AGENTS.md"
     gitignore_path = repository / ".gitignore"
+    codex_path = repository / ".codex"
+    codex_agents_path = codex_path / "agents"
     require_regular_file_or_missing(agents_path)
     require_regular_file_or_missing(gitignore_path)
+    require_directory_or_missing(codex_path)
+    require_directory_or_missing(codex_agents_path)
     require_directory_or_missing(product)
     for directory in (product / "active", product / "archive", product / "memory"):
         require_directory_or_missing(directory)
     for memory_file in (product / "memory" / "index.md", product / "memory" / "decision-log.md"):
         require_regular_file_or_missing(memory_file)
+    agent_profiles = managed_agent_profiles(repository)
 
     existing = agents_path.read_text(encoding="utf-8") if agents_path.exists() else ""
     merged = merge_agents(existing, managed_block())
@@ -142,6 +172,16 @@ def main() -> None:
             changes.append(f"created {directory}")
             if not args.dry_run:
                 directory.mkdir(parents=True, exist_ok=True)
+
+    for path, content in agent_profiles.items():
+        if path.exists() and path.read_text(encoding="utf-8") == content:
+            changes.append(f"preserved {path}")
+            continue
+        action = "updated" if path.exists() else "created"
+        changes.append(f"{action} {path}")
+        if not args.dry_run:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
 
     write_if_missing(
         product / "memory" / "index.md",

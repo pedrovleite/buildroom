@@ -4,7 +4,7 @@
 
 ## What it contains
 
-- Seven role cards in `agents/`: Noether (Researcher), Curie (Product Manager), Turing (Architect), Johnson (Lead Engineer), Lovelace (Frontend Engineer), Euler (Backend Engineer), and Feynman (QA Reviewer).
+- Nine role cards in `agents/`: Noether (Researcher), Curie (Product Manager), Turing (Architect), Johnson (Lead Engineer), Lovelace (Frontend Engineer), Euler (Backend Engineer), Feynman (QA Reviewer), Hypatia (Product Designer), and Shannon (Security & Privacy Reviewer).
 - Five workflows in `workflows/`.
 - Reusable artefact, hand-off, state, and memory templates in `templates/`.
 - A memory contract in `memory/`.
@@ -42,7 +42,7 @@ bin/install-codex-plugin
 
 The installer first ensures Graphify is available and registers its Codex skill. If Graphify is missing, it installs the open-source `graphifyy` package with `uv` (preferred) or `pipx`; it leaves an existing Graphify version in place. Python 3.10+ and one of those package managers are required when Graphify is not already installed. It then builds and validates an ignored Buildroom bundle, creates the default personal marketplace on first use, installs the plugin at `~/plugins/buildroom`, and adds `buildroom@personal` to Codex. Start a **new Codex thread** after installation so its skills are loaded.
 
-In a target repository, ask Codex to **initialize Buildroom in this repository**. The explicit initializer creates only:
+In a target repository, ask Codex to **initialize Buildroom in this repository**. The explicit initializer creates the project-local product state:
 
 ```text
 product/
@@ -53,11 +53,29 @@ product/
     decision-log.md
 ```
 
+It also installs nine Buildroom-managed Codex custom-agent profiles in `.codex/agents/` (Noether, Curie, Turing, Johnson, Lovelace, Euler, Feynman, Hypatia, and Shannon), which Codex can use as subagents. Re-running initialization updates only files with Buildroom's ownership marker; unrelated profiles are preserved, and an unmanaged filename collision stops safely. These profiles carry role routing instructions, inherit the parent Codex session's permissions, and are not a security sandbox. The Buildroom Master still supplies the canonical role card and accepted task packet for each delegation.
+
 It also adds a delimited Buildroom block to `AGENTS.md`, preserving every existing instruction. A workflow run, PRD, tech spec, hand-off, or decision is created only when you ask to start that work. Buildroom never stores project state in the global plugin.
 
 The initializer also adds `graphify-out/` to `.gitignore` while preserving existing entries. It does not build a graph. On the first code-focused task, Buildroom creates the local code-only graph with `graphify extract . --code-only`; later tasks refresh changed code incrementally with `graphify update .`. It then consults the graph with `graphify query` (and `path` or `explain` when useful) before broad source exploration, whether or not the repository has been initialized with Buildroom. Code extraction uses local parsing, skips documents and media, requires no model/API credentials, and writes generated output to `graphify-out/`. If Graphify fails or cannot handle the repository, Buildroom reports that and uses bounded direct inspection.
 
-To update after pulling a newer version of this repository, run the same command again. It stages and validates the replacement before changing the installed source; if Codex cannot reinstall it, the previous plugin source is restored. Use `bin/install-codex-plugin --dry-run` to validate the installation path without changing your Codex setup.
+To update the personal Codex plugin after pulling a newer version of this repository, run `bin/install-codex-plugin` again. It stages and validates the replacement before changing the installed source; if Codex cannot reinstall it, the previous plugin source is restored. Use `bin/install-codex-plugin --dry-run` to validate that installation path without changing your Codex setup.
+
+## Install Buildroom directly in a project
+
+For a project-local setup with Codex, GitHub Copilot CLI, or Claude Code, clone this repository and run the Node installer. Node.js 20+ is required. Choose one provider per target project in v1; the installer does not install the provider CLI or change global provider settings.
+
+```sh
+git clone https://github.com/pedrovleite/buildroom.git
+cd buildroom
+node bin/buildroom-install.mjs install --provider codex --project /path/to/your-project
+```
+
+Use `--provider copilot` for GitHub Copilot CLI or `--provider claude-code` for Claude Code. Add `--dry-run` to preview files and Graphify commands without changing the project. If Graphify is missing, the installer uses `uv` or `pipx` to install its Python CLI; Python 3.10+ and one of those package managers are needed only in that case. The selected provider's own CLI/client must already be installed and signed in.
+
+The installer copies the shared canonical Buildroom roles, workflows, templates, registry, and orchestration material into `.buildroom/`, creates provider-native skill and role-agent files, initializes missing `product/` memory scaffolding, and registers Graphify for the selected project/provider. Existing instructions and project memory are preserved. Repeat the same install command after updating this checkout to update the project. To remove Buildroom-managed files, run `node bin/buildroom-install.mjs uninstall --project /path/to/your-project`; locally edited files are kept, as are Graphify registration/graph data and `product/` records.
+
+Project-specific skills, agent profiles, and workflows can be added under `.buildroom/custom/skills/`, `.buildroom/custom/agents/`, and `.buildroom/custom/workflows/`. Keep custom work out of the installer-managed canonical files so updates can preserve it. See [the project installer guide](docs/project-installer.md) for provider mappings and recovery details.
 
 ### Upgrade from Product OS
 
@@ -104,7 +122,7 @@ GitHub Actions publishes only `.buildroom-site/` after a push to `main`, using t
 
 ## Name registry
 
-`registry.tsv` is the single mapping between human-friendly names and Buildroom files. It includes the seven named roles and five workflows, with English, Portuguese, and short aliases. Legacy `Engineer`, `developer`, and `dev` resolve to Johnson — Lead Engineer. Inspect available entries with:
+`registry.tsv` is the single mapping between human-friendly names and Buildroom files. It includes the nine named roles and five workflows, with English, Portuguese, and short aliases. Legacy `Engineer`, `developer`, and `dev` resolve to Johnson — Lead Engineer. Inspect available entries with:
 
 ```sh
 sh buildroom/bin/buildroom list

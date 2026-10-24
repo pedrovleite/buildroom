@@ -5,6 +5,8 @@ source: workflows/prd-to-tech-spec.md
 read_order:
   - workflows/prd-to-tech-spec.md
   - agents/architect.md
+  - agents/hypatia.md
+  - agents/shannon.md
   - agents/engineer.md
 ---
 
@@ -15,7 +17,9 @@ This is a generated navigation pack. Read the canonical workflow first, then the
 ## Read order
 1. [Read `workflows/prd-to-tech-spec.md`](../../workflows/prd-to-tech-spec.md)
 2. [Read `agents/architect.md`](../../agents/architect.md)
-3. [Read `agents/engineer.md`](../../agents/engineer.md)
+3. [Read `agents/hypatia.md`](../../agents/hypatia.md)
+4. [Read `agents/shannon.md`](../../agents/shannon.md)
+5. [Read `agents/engineer.md`](../../agents/engineer.md)
 
 ## Selection metadata
 - Catalog ID: `workflow.prd-to-tech-spec`

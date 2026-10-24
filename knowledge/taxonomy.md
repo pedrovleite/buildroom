@@ -14,6 +14,8 @@ Tags are controlled, slash-separated identifiers. The family is the segment befo
 | `role/architecture` | `role` |
 | `role/engineering` | `role` |
 | `role/quality` | `role` |
+| `role/ux-design` | `role` |
+| `role/security-privacy` | `role` |
 | `workflow/research` | `workflow` |
 | `workflow/specification` | `workflow` |
 | `workflow/delivery` | `workflow` |
