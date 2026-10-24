@@ -42,12 +42,13 @@ jobs:
         run: python -m mkdocs build --strict --config-file mkdocs.yml
       - name: Verify static artifact boundary
         run: |
-          for excluded in templates memory tests docs bin .github registry.tsv knowledge/catalog.yml; do
+          for excluded in templates memory tests bin .github registry.tsv knowledge/catalog.yml; do
             test ! -e ".buildroom-site/$excluded" || {
               echo "Excluded material reached the Pages artifact: $excluded" >&2
               exit 1
             }
           done
+          sh bin/verify-pages-artifact.sh .buildroom-site
       - name: Upload curated Pages artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
