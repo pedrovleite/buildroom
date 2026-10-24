@@ -20,12 +20,12 @@ require_file() {
 }
 
 for file in \
-  README.md \
-  registry.tsv bin/buildroom codex/AGENTS.md.snippet \
+  README.md docs/project-installer.md \
+  registry.tsv bin/buildroom bin/buildroom-install.mjs scripts/project-installer.mjs tests/project-installer.test.mjs codex/AGENTS.md.snippet \
   codex/AGENTS.global-plugin.snippet bin/build-knowledge bin/build-docs bin/build-codex-plugin bin/install-codex-plugin mkdocs.yml requirements-docs.txt docs/public-content.yml .github/workflows/docs.yml \
-  plugins/buildroom/.codex-plugin/plugin.json plugins/buildroom/skills/buildroom/SKILL.md plugins/buildroom/skills/buildroom-init/SKILL.md plugins/buildroom/scripts/init-project.py scripts/run-operations.py tests/verify-codex-plugin.sh tests/verify-run-operations.sh \
+  plugins/buildroom/.codex-plugin/plugin.json plugins/buildroom/skills/buildroom/SKILL.md plugins/buildroom/skills/buildroom/references/master-orchestration.md plugins/buildroom/skills/buildroom-init/SKILL.md plugins/buildroom/scripts/init-project.py scripts/run-operations.py tests/verify-codex-plugin.sh tests/verify-run-operations.sh tests/master-routing-eval.md \
   knowledge/taxonomy.yml knowledge/taxonomy.md knowledge/schema.yml knowledge/README.md knowledge/catalog.yml knowledge/catalog.md \
-  agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/frontend-engineer.md agents/backend-engineer.md agents/qa-reviewer.md \
+  agents/researcher.md agents/product-manager.md agents/architect.md agents/engineer.md agents/frontend-engineer.md agents/backend-engineer.md agents/qa-reviewer.md agents/hypatia.md agents/shannon.md \
   workflows/research-to-prd.md workflows/prd-to-tech-spec.md workflows/feature-delivery.md workflows/bug-fix.md workflows/no-bullshit-bug-fix.md \
   templates/workflow-state.md templates/handoff.md templates/memory-index.md \
   memory/README.md example-project/README.md; do
@@ -43,6 +43,7 @@ test -x "$root/bin/build-knowledge"
 test -x "$root/bin/build-docs"
 test -x "$root/bin/build-codex-plugin"
 test -x "$root/bin/install-codex-plugin"
+test -x "$root/bin/buildroom-install.mjs"
 test -x "$root/tests/verify-codex-plugin.sh"
 test -x "$root/tests/verify-run-operations.sh"
 "$root/bin/build-knowledge" --check
@@ -58,6 +59,24 @@ require_text codex/AGENTS.global-plugin.snippet 'globally installed `buildroom` 
 require_text codex/AGENTS.global-plugin.snippet '<!-- buildroom:global-plugin:start -->'
 require_text README.md 'Install once for Codex (recommended)'
 require_text README.md 'bin/install-codex-plugin'
+require_text README.md 'bin/buildroom-install.mjs install --provider codex'
+require_text docs/project-installer.md 'GitHub Copilot CLI'
+require_text docs/project-installer.md 'Graphify registration'
+require_text mkdocs.yml 'Project installer: project-installer.md'
+require_text docs/public-content.yml 'source: docs/project-installer.md'
+require_text README.md 'nine Buildroom-managed Codex custom-agent profiles'
+require_text docs/run-operations.md 'Conversational Master and Codex subagents'
+require_text docs/run-operations.md 'never falls back to the Agents API'
+require_text plugins/buildroom/skills/buildroom/SKILL.md 'single user-facing coordinator'
+require_text plugins/buildroom/skills/buildroom/SKILL.md 'Never claim a subagent was started when it was not'
+require_text plugins/buildroom/skills/buildroom/SKILL.md 'Hypatia and Shannon are conditional design/security reviewers'
+require_text plugins/buildroom/skills/buildroom/references/master-orchestration.md 'Hypatia — Product Designer and Shannon — Security & Privacy Reviewer are conditional reviewers'
+require_text plugins/buildroom/skills/buildroom/SKILL.md 'use `buildroom-init` only after the user asks to initialize/migrate'
+require_text plugins/buildroom/skills/buildroom/references/master-orchestration.md 'Every delegated prompt must contain the following packet'
+require_text tests/master-routing-eval.md '## Pass criteria'
+require_text tests/master-routing-eval.md 'Redesign the sign-in and recovery flow'
+require_text tests/master-routing-eval.md 'Store sensitive customer data'
+require_text tests/master-routing-eval.md 'ordinary backend-only preference field'
 require_text knowledge/catalog.md '# Buildroom catalog'
 require_text knowledge/catalog.md 'No-Bullshit Bug Fix'
 require_text knowledge/catalog.md 'open generated pack'
@@ -99,9 +118,9 @@ require_in_order() {
 }
 
 require_in_order knowledge/context/research-to-prd.md workflows/research-to-prd.md agents/researcher.md agents/product-manager.md agents/architect.md
-require_in_order knowledge/context/prd-to-tech-spec.md workflows/prd-to-tech-spec.md agents/architect.md agents/engineer.md
-require_in_order knowledge/context/feature-delivery.md workflows/feature-delivery.md agents/engineer.md agents/frontend-engineer.md agents/backend-engineer.md agents/qa-reviewer.md
-require_in_order knowledge/context/bug-fix.md workflows/bug-fix.md agents/qa-reviewer.md agents/engineer.md agents/frontend-engineer.md agents/backend-engineer.md
+require_in_order knowledge/context/prd-to-tech-spec.md workflows/prd-to-tech-spec.md agents/architect.md agents/hypatia.md agents/shannon.md agents/engineer.md
+require_in_order knowledge/context/feature-delivery.md workflows/feature-delivery.md agents/engineer.md agents/hypatia.md agents/shannon.md agents/frontend-engineer.md agents/backend-engineer.md agents/qa-reviewer.md
+require_in_order knowledge/context/bug-fix.md workflows/bug-fix.md agents/qa-reviewer.md agents/engineer.md agents/shannon.md agents/frontend-engineer.md agents/backend-engineer.md
 require_in_order knowledge/context/no-bullshit-bug-fix.md workflows/no-bullshit-bug-fix.md agents/engineer.md
 
 make_knowledge_fixture() {
@@ -201,7 +220,7 @@ awk 'BEGIN { changed = 0 } { if (!changed && /^owner: buildroom$/) { sub("buildr
 expect_knowledge_error "$tmp_scalar" 'unsupported scalar syntax'
 
 make_knowledge_fixture "$tmp_dependency"
-awk 'BEGIN { changed = 0 } { if (!changed && /depends_on: \[role.engineer, role.frontend-engineer, role.backend-engineer, role.qa-reviewer\]/) { sub("\\[role.engineer, role.frontend-engineer, role.backend-engineer, role.qa-reviewer\\]", "[workflow.bug-fix]"); changed = 1 } print } END { if (!changed) exit 2 }' \
+awk 'BEGIN { changed = 0 } { if (!changed && /depends_on: \[role.engineer, role.product-designer, role.security-reviewer, role.frontend-engineer, role.backend-engineer, role.qa-reviewer\]/) { sub("\\[role.engineer, role.product-designer, role.security-reviewer, role.frontend-engineer, role.backend-engineer, role.qa-reviewer\\]", "[workflow.bug-fix]"); changed = 1 } print } END { if (!changed) exit 2 }' \
   "$tmp_dependency/workflows/feature-delivery.md" > "$tmp_dependency/feature-delivery.md" && mv "$tmp_dependency/feature-delivery.md" "$tmp_dependency/workflows/feature-delivery.md"
 expect_knowledge_error "$tmp_dependency" 'workflow depends_on must reference a role id (workflow.bug-fix)'
 
@@ -395,8 +414,25 @@ require_text registry.tsv 'Product Manager'
 require_text registry.tsv 'Johnson — Lead Engineer'
 require_text registry.tsv 'Lovelace — Frontend Engineer'
 require_text registry.tsv 'Euler — Backend Engineer'
+require_text registry.tsv 'Hypatia — Product Designer'
+require_text registry.tsv 'Shannon — Security & Privacy Reviewer'
 require_text registry.tsv 'Bug Fix'
 require_text registry.tsv 'No-Bullshit Bug Fix'
+require_text workflows/feature-delivery.md 'Johnson requests a bounded Hypatia review'
+require_text workflows/feature-delivery.md 'materially changes user journeys, navigation, interaction, onboarding, content comprehension, or accessibility'
+require_text workflows/feature-delivery.md 'Johnson requests Shannon’s threat/risk review'
+require_text workflows/feature-delivery.md 'authentication, authorization, sensitive data, external trust boundaries, security-relevant dependencies'
+require_text workflows/feature-delivery.md 'before the first consequential implementation action'
+require_text workflows/feature-delivery.md 'Shannon cannot accept or waive risk'
+require_text workflows/prd-to-tech-spec.md 'obtain Shannon’s threat/risk assessment'
+require_text workflows/bug-fix.md 'Shannon reviews the threat and privacy implications'
+require_text workflows/bug-fix.md 'never delay urgent containment for review'
+require_text agents/hypatia.md 'Must not:** silently redefine product requirements'
+require_text agents/shannon.md 'Must not:** accept or waive risk'
+require_text agents/shannon.md 'distinguish observed facts from hypotheses'
+require_text tests/master-routing-eval.md 'Keep Hypatia and Shannon out unless their documented UX/security triggers apply; never delegate by default.'
+require_text tests/master-routing-eval.md 'before the named human gate'
+require_text docs/project-installer.md 'nine lightweight role-agent profiles'
 require_text codex/AGENTS.md.snippet 'registry.tsv'
 require_text README.md 'Name registry'
 
@@ -417,7 +453,17 @@ printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Curie — Product Manager'
 resolve_output=$(sh "$root/bin/buildroom" resolve qa)
 printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Feynman — QA Reviewer'
 
-for name in Curie Turing Feynman Engineer developer dev 'Lead Engineer' Lovelace 'Frontend Engineer' Euler 'Backend Engineer'; do
+resolve_output=$(sh "$root/bin/buildroom" resolve accessibility)
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Hypatia — Product Designer'
+
+resolve_output=$(sh "$root/bin/buildroom" resolve 'privacy reviewer')
+printf '%s\n' "$resolve_output" | grep -Fq 'Resolved: Shannon — Security & Privacy Reviewer'
+
+list_output=$(sh "$root/bin/buildroom" list)
+printf '%s\n' "$list_output" | grep -Fq 'agent: Hypatia — Product Designer'
+printf '%s\n' "$list_output" | grep -Fq 'agent: Shannon — Security & Privacy Reviewer'
+
+for name in Curie Turing Feynman Hypatia Shannon Engineer developer dev 'Lead Engineer' Lovelace 'Frontend Engineer' Euler 'Backend Engineer'; do
   sh "$root/bin/buildroom" resolve "$name" | grep -Fq 'Type: agent'
 done
 
@@ -450,5 +496,6 @@ fi
 printf '%s\n' "$unknown_output" | grep -Fq 'explicit `buildroom/...` Markdown path'
 
 sh "$root/tests/verify-run-operations.sh"
+node --test "$root/tests/project-installer.test.mjs"
 
 echo 'buildroom verification passed'

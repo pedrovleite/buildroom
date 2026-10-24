@@ -17,6 +17,16 @@ sh buildroom/bin/buildroom list
 
 `start` accepts a workflow's canonical name, documented alias, slug, or `workflow.<slug>` ID. It never accepts a role name such as `Researcher`.
 
+## Conversational Master and Codex subagents
+
+With the Buildroom plugin installed, users can describe the desired outcome in ordinary language. The Buildroom skill acts as one conversational Master: it resolves the canonical route, asks only material questions, owns user communication and durable run state, and delegates independent bounded tasks to Codex-native subagents only when useful and available. The Master validates and synthesizes every return; subagents do not approve human gates or own the overall run.
+
+Project initialization installs Buildroom-managed role profiles under `.codex/agents/`. Profiles identify Noether, Curie, Turing, Johnson, Lovelace, Euler, Feynman, Hypatia, and Shannon and inherit the parent Codex session's permissions; they are not separate sandboxes. Hypatia is called selectively for user-facing design/accessibility work; Shannon for security/privacy risk reviews. Neither is invoked for every task, owns implementation, or replaces human gates or Feynman's independent QA. Re-run the initializer after updating Buildroom to refresh only marked Buildroom profiles. Unrelated profiles are preserved; an unmanaged filename collision stops initialization instead of overwriting user work.
+
+Subagents consume additional tokens/usage compared with a single-agent run, so delegation is selective and sequential stages/shared-file edits are not parallelized. If the current Codex session has subagents disabled or unavailable, the Master continues directly when safe or explains why work must pause. Buildroom never falls back to the Agents API, API credentials, or a separately billed runtime. Existing Markdown role cards and accepted hand-offs remain authoritative; custom roles/workflows continue through the catalog/registry and can use a manually added Codex profile or the supplied task-level role instructions.
+
+For conversation behavior, return validation, approvals, and fallback rules, see the installed plugin's `skills/buildroom/references/master-orchestration.md`.
+
 ## Start a run
 
 ```sh
@@ -53,7 +63,7 @@ It emits these outcomes:
 
 ## Required codebase graph
 
-Graphify is a required local code-navigation companion for Buildroom code tasks; it is separate from Buildroom's product memory and works whether or not the repository has been initialized for Buildroom. The standard Codex installer provisions its CLI and registers its Codex skill. For a portable Buildroom install, install `graphifyy` with `uv tool install --python '>=3.10' graphifyy` or `pipx install graphifyy`, then run `graphify install --platform codex`.
+Graphify is a required local code-navigation companion for Buildroom code tasks; it is separate from Buildroom's product memory and works whether or not the repository has been initialized for Buildroom. The personal Codex plugin installer provisions its CLI and registers its Codex skill. The project installer can instead register it locally for Codex, GitHub Copilot CLI, or Claude Code; see the [project installer guide](project-installer.md). For a manual portable setup, install `graphifyy` with `uv tool install --python '>=3.10' graphifyy` or `pipx install graphifyy`, then use the Graphify install command for the selected provider.
 
 On the first code-focused task, create the graph from the repository root with `graphify extract . --code-only`. Before later queries, refresh changed code incrementally with `graphify update .`, then use `graphify query`, `graphify path`, or `graphify explain` to locate relevant source before broad exploration. The code-only graph is parsed locally, needs no model/API credentials, and is generated under `graphify-out/`; Buildroom initialization adds that directory to `.gitignore` without creating the graph.
 

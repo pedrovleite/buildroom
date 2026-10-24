@@ -6,6 +6,8 @@ agent	Johnson — Lead Engineer	engineer,lead engineer,engenheiro,developer,dev,
 agent	Lovelace — Frontend Engineer	frontend engineer,frontend,front-end,lovelace	agents/frontend-engineer.md	role
 agent	Euler — Backend Engineer	backend engineer,backend,back-end,euler	agents/backend-engineer.md	role
 agent	Feynman — QA Reviewer	qa reviewer,qa,tester,quality reviewer,qualidade,feynman	agents/qa-reviewer.md	role
+agent	Hypatia — Product Designer	product designer,ux designer,ux,designer,accessibility,accessibility designer,hypatia	agents/hypatia.md	role
+agent	Shannon — Security & Privacy Reviewer	security reviewer,security,privacy reviewer,security privacy,shannon	agents/shannon.md	role
 workflow	Research to PRD	research-prd,pesquisa para prd	workflows/research-to-prd.md	workflow
 workflow	PRD to Technical Spec	prd-to-tech-spec,prd para especificacao tecnica	workflows/prd-to-tech-spec.md	workflow
 workflow	Feature Delivery	feature,entrega de feature	workflows/feature-delivery.md	workflow

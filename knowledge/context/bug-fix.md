@@ -6,6 +6,7 @@ read_order:
   - workflows/bug-fix.md
   - agents/qa-reviewer.md
   - agents/engineer.md
+  - agents/shannon.md
   - agents/frontend-engineer.md
   - agents/backend-engineer.md
 ---
@@ -18,8 +19,9 @@ This is a generated navigation pack. Read the canonical workflow first, then the
 1. [Read `workflows/bug-fix.md`](../../workflows/bug-fix.md)
 2. [Read `agents/qa-reviewer.md`](../../agents/qa-reviewer.md)
 3. [Read `agents/engineer.md`](../../agents/engineer.md)
-4. [Read `agents/frontend-engineer.md`](../../agents/frontend-engineer.md)
-5. [Read `agents/backend-engineer.md`](../../agents/backend-engineer.md)
+4. [Read `agents/shannon.md`](../../agents/shannon.md)
+5. [Read `agents/frontend-engineer.md`](../../agents/frontend-engineer.md)
+6. [Read `agents/backend-engineer.md`](../../agents/backend-engineer.md)
 
 ## Selection metadata
 - Catalog ID: `workflow.bug-fix`

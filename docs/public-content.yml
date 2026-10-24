@@ -5,6 +5,8 @@ public_files:
     destination: operating-model.md
   - source: docs/run-operations.md
     destination: run-operations.md
+  - source: docs/project-installer.md
+    destination: project-installer.md
   - source: knowledge/README.md
     destination: knowledge/README.md
   - source: knowledge/catalog.md
@@ -25,6 +27,10 @@ public_files:
     destination: agents/backend-engineer.md
   - source: agents/qa-reviewer.md
     destination: agents/qa-reviewer.md
+  - source: agents/hypatia.md
+    destination: agents/hypatia.md
+  - source: agents/shannon.md
+    destination: agents/shannon.md
   - source: workflows/research-to-prd.md
     destination: workflows/research-to-prd.md
   - source: workflows/prd-to-tech-spec.md

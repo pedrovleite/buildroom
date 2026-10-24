@@ -25,6 +25,16 @@ test -f "$tmp/plugin/.codex-plugin/plugin.json"
 test -f "$tmp/plugin/skills/buildroom/SKILL.md"
 test -f "$tmp/plugin/skills/buildroom-init/SKILL.md"
 test -f "$tmp/plugin/scripts/init-project.py"
+test -f "$tmp/plugin/skills/buildroom/references/master-orchestration.md"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-noether.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-curie.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-turing.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-johnson.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-lovelace.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-euler.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-feynman.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-hypatia.toml"
+test -f "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-shannon.toml"
 test -f "$tmp/plugin/skills/buildroom/references/toolkit/knowledge/catalog.yml"
 test -f "$tmp/plugin/skills/buildroom/references/toolkit/workflows/bug-fix.md"
 test -f "$tmp/plugin/skills/buildroom/references/toolkit/codex/AGENTS.global-plugin.snippet"
@@ -32,8 +42,13 @@ test -f "$tmp/plugin/skills/buildroom/references/toolkit/scripts/run-operations.
 grep -Fq 'graphify extract . --code-only' "$tmp/plugin/skills/buildroom/SKILL.md"
 grep -Fq 'graphify query' "$tmp/plugin/skills/buildroom/SKILL.md"
 grep -Fq 'graphify update .' "$tmp/plugin/skills/buildroom/SKILL.md"
-grep -Fq 'whether or not Buildroom has been initialized' "$tmp/plugin/skills/buildroom/SKILL.md"
+grep -Fq 'whether or not Buildroom is initialized' "$tmp/plugin/skills/buildroom/SKILL.md"
 grep -Fq 'bounded direct inspection' "$tmp/plugin/skills/buildroom/SKILL.md"
+grep -Fq 'single user-facing coordinator' "$tmp/plugin/skills/buildroom/SKILL.md"
+grep -Fq 'Never claim a subagent was started when it was not' "$tmp/plugin/skills/buildroom/SKILL.md"
+grep -Fq 'Never use the Agents API' "$tmp/plugin/skills/buildroom/SKILL.md"
+grep -Fq 'Every delegated prompt must contain the following packet' "$tmp/plugin/skills/buildroom/references/master-orchestration.md"
+grep -Fq 'Compare the return with the task packet' "$tmp/plugin/skills/buildroom/references/master-orchestration.md"
 cmp "$root/knowledge/catalog.yml" "$tmp/plugin/skills/buildroom/references/toolkit/knowledge/catalog.yml"
 
 stale="$tmp/stale-plugin"
@@ -74,6 +89,8 @@ grep -Fq 'must not replace the Buildroom source directory' "$tmp/source-parent-o
 
 target="$tmp/target"
 mkdir -p "$target"
+mkdir -p "$target/.codex/agents"
+printf '# User-owned profile\nname = "my-reviewer"\n' > "$target/.codex/agents/my-reviewer.toml"
 printf '# Existing repository instructions\n' > "$target/AGENTS.md"
 printf 'node_modules/\n# keep this comment\n' > "$target/.gitignore"
 python3 "$tmp/plugin/scripts/init-project.py" "$target"
@@ -87,14 +104,47 @@ test -d "$target/product/active"
 test -d "$target/product/archive"
 test -f "$target/product/memory/index.md"
 test -f "$target/product/memory/decision-log.md"
+for profile in noether curie turing johnson lovelace euler feynman hypatia shannon; do
+  managed="$target/.codex/agents/buildroom-$profile.toml"
+  test -f "$managed"
+  grep -Fq '# Managed by Buildroom.' "$managed"
+done
+grep -Fq 'User-owned profile' "$target/.codex/agents/my-reviewer.toml"
+cp "$target/.codex/agents/my-reviewer.toml" "$tmp/user-profile-before"
 toolkit="$tmp/plugin/skills/buildroom/references/toolkit"
 sh "$toolkit/bin/buildroom" start feature TOOLKIT-1 --project "$target"
 sh "$toolkit/bin/buildroom" check TOOLKIT-1 --project "$target"
 cp "$target/AGENTS.md" "$tmp/agents-before.md"
 cp "$target/.gitignore" "$tmp/gitignore-before"
+printf '# Managed by Buildroom. Local edits are replaced when Buildroom is initialized again.\nname = "local-drift"\n' > "$target/.codex/agents/buildroom-johnson.toml"
 python3 "$tmp/plugin/scripts/init-project.py" "$target"
 cmp "$tmp/agents-before.md" "$target/AGENTS.md"
 cmp "$tmp/gitignore-before" "$target/.gitignore"
+cmp "$tmp/plugin/skills/buildroom/references/agent-profiles/buildroom-johnson.toml" "$target/.codex/agents/buildroom-johnson.toml"
+cmp "$tmp/user-profile-before" "$target/.codex/agents/my-reviewer.toml"
+
+collision="$tmp/profile-collision"
+mkdir -p "$collision/.codex/agents"
+printf 'name = "user-owned"\n' > "$collision/.codex/agents/buildroom-noether.toml"
+if python3 "$tmp/plugin/scripts/init-project.py" "$collision" >"$tmp/profile-collision-output" 2>&1; then
+  echo 'Initialization must refuse to overwrite an unmanaged agent profile.' >&2
+  exit 1
+fi
+grep -Fq 'Refusing to overwrite an unmanaged Codex agent profile' "$tmp/profile-collision-output"
+grep -Fxq 'name = "user-owned"' "$collision/.codex/agents/buildroom-noether.toml"
+test ! -e "$collision/product"
+test ! -e "$collision/AGENTS.md"
+test ! -e "$collision/.gitignore"
+
+agents_link="$tmp/agents-link"
+mkdir -p "$agents_link/.codex"
+ln -s "$tmp" "$agents_link/.codex/agents"
+if python3 "$tmp/plugin/scripts/init-project.py" "$agents_link" >"$tmp/agents-link-output" 2>&1; then
+  echo 'Initialization must refuse a symbolic-link .codex/agents directory.' >&2
+  exit 1
+fi
+grep -Fq 'Expected a directory or no path' "$tmp/agents-link-output"
+test ! -e "$agents_link/product"
 
 gitignore_existing="$tmp/gitignore-existing"
 mkdir "$gitignore_existing"

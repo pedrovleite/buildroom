@@ -29,6 +29,7 @@ nav:
       - Overview: index.md
       - Operating model: operating-model.md
       - Run operations: run-operations.md
+      - Project installer: project-installer.md
   - Discovery:
       - Knowledge contract: knowledge/README.md
       - Catalog: knowledge/catalog.md
@@ -41,6 +42,8 @@ nav:
       - Lovelace — Frontend Engineer: agents/frontend-engineer.md
       - Euler — Backend Engineer: agents/backend-engineer.md
       - Feynman — QA Reviewer: agents/qa-reviewer.md
+      - Hypatia — Product Designer: agents/hypatia.md
+      - Shannon — Security & Privacy Reviewer: agents/shannon.md
   - Workflows:
       - Research to PRD: workflows/research-to-prd.md
       - PRD to Technical Spec: workflows/prd-to-tech-spec.md

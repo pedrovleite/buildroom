@@ -16,5 +16,8 @@ _bmad/render/
 .buildroom-docs/
 .buildroom-site/
 
+# Generated local code navigation graph.
+graphify-out/
+
 # Reproducible local Codex-plugin bundle.
 .buildroom-plugin/

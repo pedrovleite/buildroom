@@ -7,11 +7,11 @@ status: active
 audience: [human, agent]
 tags: [domain/buildroom, artifact/workflow, workflow/bug-fix, risk/standard, risk/high-impact]
 applies_to: [buildroom]
-depends_on: [role.qa-reviewer, role.engineer, role.frontend-engineer, role.backend-engineer]
+depends_on: [role.qa-reviewer, role.engineer, role.security-reviewer, role.frontend-engineer, role.backend-engineer]
 related: [workflow.no-bullshit-bug-fix]
 authority: human-fix-approval
 owner: buildroom
-updated: 2026-10-21
+updated: 2026-10-24
 ---
 
 # Bug Fix
@@ -19,7 +19,7 @@ updated: 2026-10-21
 1. Intake and classify the defect in `bug-investigation.md` and `workflow-state.md`: expected versus observed behaviour, environment/version, impact, severity, owner, route, evidence, and next action.
 2. Decide the route. A production-impacting, security-sensitive, broad-impact, or severity-threshold defect enters the incident branch below; a known small local correction may be assessed against `no-bullshit-bug-fix.md`; every other defect stays on this standard route.
 3. QA Reviewer attempts reproduction and bounds the issue. If it cannot reproduce, state remains `triage`, names the missing evidence, and does not hand off implementation.
-4. Record diagnosis: root-cause hypothesis and confidence, affected area, contributing conditions, governing decision/spec link, safe fix options, acceptance criteria, and regression coverage.
+4. Record diagnosis: root-cause hypothesis and confidence, affected area, contributing conditions, governing decision/spec link, safe fix options, acceptance criteria, and regression coverage. If a non-incident diagnosis reveals a security/privacy risk, Shannon reviews the threat and privacy implications, proposed mitigation, and regression/security checks before the human approves remediation; record Shannon’s findings, mitigations, verification needs, unresolved risks, and the human’s disposition in `bug-investigation.md`.
 5. Feynman — QA Reviewer creates a Feynman-to-Johnson hand-off with complete entry/exit criteria, evidence links, decision authority, pause/resume condition, risks, and requested output. Set owner `Johnson — Lead Engineer`, status `awaiting-approval`.
 6. Human approves every standard fix plan before implementation. Rejection or changed scope returns the hand-off with the required decision.
 7. Johnson implements the approved plan, records outputs/blockers and the same split-decision trail used by Feature Delivery, and runs the regression check. If a bounded frontend or backend slice is useful, Johnson sends a complete accepted hand-off to Lovelace or Euler; the specialist returns a complete proposed hand-off; Johnson accepts and integrates it before any further specialist slice or QA hand-off. Specialists may not create an accepted return or send work to Feynman.
@@ -30,8 +30,8 @@ updated: 2026-10-21
 ## Incident branch
 
 1. Assign coordinator, mitigation owner, and communications owner; maintain a timestamped run trace and stakeholder update cadence.
-2. Contain or mitigate first, then investigate; record each action, owner, outcome, and recovery evidence.
-3. Independently verify recovery before closure.
+2. Contain or mitigate first, then investigate; record each action, owner, outcome, and recovery evidence. For security/privacy incidents, consult Shannon on threat scope, data exposure, mitigations, and verification as soon as safely actionable; never delay urgent containment for review.
+3. Independently verify recovery before closure; include Shannon's unresolved risks and security/privacy checks where relevant.
 4. Create a blameless postmortem with impact, timeline, contributors, preventative actions, owners, priorities, measurable end states, and tracking links.
 
 **Stop conditions:** no reproduction; insufficient logs; unresolved severity; missing approval; incident response requires an operational decision outside this workflow.

@@ -27,6 +27,13 @@ Independently verifies agreed behaviour and release evidence.
 - Tags: `domain/buildroom`, `artifact/role`, `role/quality`
 - Authority: `independent-verification`
 
+### [Hypatia — Product Designer](<../agents/hypatia.md>)
+
+Turns user-facing requirements into clear interaction, content, and accessibility guidance.
+
+- Tags: `domain/buildroom`, `artifact/role`, `role/ux-design`
+- Authority: `design-recommendation-within-approved-product-scope`
+
 ### [Johnson — Lead Engineer](<../agents/engineer.md>)
 
 Owns approved technical delivery, specialist coordination, integration, and reproducible verification evidence.
@@ -47,6 +54,13 @@ Turns a product question into current cited evidence and marked uncertainty.
 
 - Tags: `domain/buildroom`, `artifact/role`, `role/research`
 - Authority: `evidence-and-handoff`
+
+### [Shannon — Security & Privacy Reviewer](<../agents/shannon.md>)
+
+Identifies security and privacy risks, mitigations, and verification evidence for relevant changes.
+
+- Tags: `domain/buildroom`, `artifact/role`, `role/security-privacy`
+- Authority: `independent-risk-review-no-risk-acceptance`
 
 ### [Turing — Architect](<../agents/architect.md>)
 
