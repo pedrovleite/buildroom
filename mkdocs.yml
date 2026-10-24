@@ -28,8 +28,8 @@ nav:
   - Start here:
       - Overview: index.md
       - Operating model: operating-model.md
-      - Run operations: run-operations.md
-      - Project installer: project-installer.md
+      - Run operations: docs/run-operations.md
+      - Project installer: docs/project-installer.md
   - Discovery:
       - Knowledge contract: knowledge/README.md
       - Catalog: knowledge/catalog.md

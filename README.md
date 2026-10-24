@@ -140,7 +140,7 @@ Resolution is case-insensitive and deterministic. Unknown names fail with the va
 
 ## Run operations
 
-For command reference, examples, exit codes, and the express-route boundary, read the public [Run operations guide](https://pedrovleite.github.io/buildroom/run-operations/). The public documentation navigation also exposes this guide directly.
+For command reference, examples, exit codes, and the express-route boundary, read the public [Run operations guide](https://pedrovleite.github.io/buildroom/docs/run-operations/). The public documentation navigation also exposes this guide directly.
 
 For a future BMad distribution, package these role cards and workflows as a custom module. The workflow artefacts remain valid whether invoked from BMad, Paperclip, or a direct Codex chat.
 

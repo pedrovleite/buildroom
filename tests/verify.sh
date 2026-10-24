@@ -62,7 +62,7 @@ require_text README.md 'bin/install-codex-plugin'
 require_text README.md 'bin/buildroom-install.mjs install --provider codex'
 require_text docs/project-installer.md 'GitHub Copilot CLI'
 require_text docs/project-installer.md 'Graphify registration'
-require_text mkdocs.yml 'Project installer: project-installer.md'
+require_text mkdocs.yml 'Project installer: docs/project-installer.md'
 require_text docs/public-content.yml 'source: docs/project-installer.md'
 require_text README.md 'nine Buildroom-managed Codex custom-agent profiles'
 require_text docs/run-operations.md 'Conversational Master and Codex subagents'
@@ -261,6 +261,10 @@ test -f "$tmp_docs/tests/private-test.md"
 "$root/bin/build-docs" --root "$tmp_docs" --write >/dev/null
 "$root/bin/build-docs" --root "$tmp_docs" --check >/dev/null
 test -f "$tmp_docs/.buildroom-docs/index.md"
+test -f "$tmp_docs/.buildroom-docs/docs/run-operations.md"
+test -f "$tmp_docs/.buildroom-docs/docs/project-installer.md"
+grep -Fq '(docs/project-installer.md)' "$tmp_docs/.buildroom-docs/operating-model.md"
+grep -Fq '(project-installer.md)' "$tmp_docs/.buildroom-docs/docs/run-operations.md"
 test -f "$tmp_docs/.buildroom-docs/workflows/no-bullshit-bug-fix.md"
 test -f "$tmp_docs/.buildroom-docs/knowledge/context/no-bullshit-bug-fix.md"
 test ! -e "$tmp_docs/.buildroom-docs/templates"
